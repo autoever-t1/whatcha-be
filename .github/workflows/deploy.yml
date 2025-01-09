@@ -1,0 +1,66 @@
+name: CI/CD BackendServer
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      - name: Docker build
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t app .
+          docker tag app ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }} # EC2 인스턴스 퍼블릭 DNS
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }} # pem 키
+          script: |
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Pull the latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
+
+            # Define dynamic container name based on the branch name
+            CONTAINER_NAME="whatcha_app"
+
+            # Stop and remove existing container if it exists
+            if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+              docker stop $CONTAINER_NAME || true
+              docker rm -f $CONTAINER_NAME || true
+            fi
+
+            # Run the new container
+            docker run -d --name $CONTAINER_NAME --log-driver=syslog -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=dev \
+              -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+              -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+              -e AWS_REGION=${{ secrets.AWS_REGION }} \
+              ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
+
+            # Remove unused images to free space
+            docker image prune -a -f
