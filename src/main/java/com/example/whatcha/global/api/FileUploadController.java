@@ -8,6 +8,6 @@ public class FileUploadController {
 
     @GetMapping("/test")
     public String test() {
-        return "test";
+        return "test!!!!!";
     }
 }
