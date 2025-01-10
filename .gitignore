@@ -37,4 +37,4 @@ out/
 .vscode/
 
 # Ignore application-secret.properties
-application-secret.properties
+application-secret.yml
