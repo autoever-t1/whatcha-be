@@ -76,7 +76,7 @@ jobs:
             
             # Check if Redis is running on the EC2 instance (optional)
             echo "Checking Redis service..."
-            if ! nc -zv 13.209.26.139 6379; then
+            if ! nc -zv localhost 6379; then
               echo "Redis server is not running. Please start Redis."
               exit 1
             fi
