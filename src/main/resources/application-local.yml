@@ -19,11 +19,10 @@ spring:
   config:
     import: optional:application-secret.yml
 
-  data:
-    redis:
-      host: 127.0.0.1
-      port: 6379
-      password: ${secret.redis.password}
+  redis:
+    host: localhost
+    port: 6379
+    password: ${secret.redis.password}
 
   mail:
     host: smtp.gmail.com
