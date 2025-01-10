@@ -62,13 +62,6 @@ jobs:
               docker stop $CONTAINER_NAME || true
               docker rm -f $CONTAINER_NAME || true
             fi
-            
-            # Check if Redis is running on the EC2 instance (optional)
-            echo "Checking Redis service..."
-            if ! nc -zv 13.209.26.139 6379; then
-              echo "Redis server is not running. Please start Redis."
-              exit 1
-            fi
 
             # Run the new container
             docker run -d --name $CONTAINER_NAME --log-driver=syslog -p 8080:8080 \
@@ -80,6 +73,13 @@ jobs:
               -e REDIS_PORT=6379 \
               -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
               ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
+            
+            # Check if Redis is running on the EC2 instance (optional)
+            echo "Checking Redis service..."
+            if ! nc -zv 13.209.26.139 6379; then
+              echo "Redis server is not running. Please start Redis."
+              exit 1
+            fi
 
             # Remove unused images to free space
             docker image prune -a -f
