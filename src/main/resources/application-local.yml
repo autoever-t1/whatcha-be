@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: whatcha
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
+    username: whatcha
+    password: ${secret.mysql.password}
+
+  jpa:
+    hibernate:
+      show_sql: true
+      format_sql: true
+      hbm2ddl:
+        auto: update
+    show-sql: true
+
+  config:
+    import: optional:application-secret.yml
+
+  data:
+    redis:
+      host: 172.31.37.49
+      port: 6379
+      password: ${secret.redis.password}
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${secret.mail.username}
+    password: ${secret.mail.password}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+
+logging:
+  level:
+    org:
+      hibernate.SQL: DEBUG
+      hibernate.type.descriptor.sql.BasicBinder: TRACE
+      spring.boot: DEBUG
+      spring.security: DEBUG
+      spring.web: DEBUG
+      apache.tiles: INFO
+      spring.mail: DEBUG
+    root: INFO
+
+server:
+  error:
+    include-stacktrace: never
+  servlet:
+    encoding:
+      enabled: true
+      force: true
+      charset: UTF-8
+    contextPath: /api
+  address: 0.0.0.0
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+build:
+  date: "@build.date@"
+
+jwt:
+  refresh-expired-in: '1296000000'  # Refresh Token ?? ?? (15?)
+  access-expired-in: '3600000' # Access Token ?? ?? (1??)
+  cookieName: refreshToken
+  secret: ${secret-jwt.secret}
+springfox:
+  documentation:
+    swagger:
+      use-model-v3: false
+
+kakao:
+  oauth2:
+    client-id: ${secret.kakao.client-id}
+    redirect-uri: "http://localhost:8080/api/kakao"
+    token-uri: "https://kauth.kakao.com/oauth/token"
+    user-info-uri: "https://kapi.kakao.com/v2/user/me"
+cloud:
+  aws:
+    credentials:
+      accessKey: ${secret.cloud.accessKey}
+      secretKey: ${secret.cloud.secretKey}
+    s3:
+      bucket: whatchaa
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

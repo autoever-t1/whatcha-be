@@ -3,13 +3,13 @@ package com.example.whatcha.domain.user.domain;
 import com.example.whatcha.domain.user.constant.UserType;
 import com.example.whatcha.domain.user.dto.request.UpdateUserReqDto;
 import com.example.whatcha.global.entity.BaseEntity;
-import jakarta.persistence.Table;
+import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

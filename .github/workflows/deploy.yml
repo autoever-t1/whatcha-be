@@ -24,12 +24,12 @@ jobs:
         run: chmod +x gradlew
 
       # application-secret.properties 파일 만들기
-      - name: Make application-secret.properties
+      - name: Make application-secret.yml
         run: |
           cd ./src/main
           mkdir -p resources
           cd resources
-          echo "${{ secrets.SECRET_PROPERTIES }}" > application-secret.properties
+          echo "${{ secrets.SECRET_PROPERTIES }}" > application-secret.yml
         shell: bash
 
       - name: Build with Gradle
