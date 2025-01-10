@@ -17,7 +17,7 @@ public class FileUploadController {
     //test
     @GetMapping("/test")
     public String test() {
-        return "test";
+        return "테스트를 해보자";
     }
 
     private final FileUploadService fileUploadService;
