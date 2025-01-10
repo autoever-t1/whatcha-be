@@ -20,7 +20,7 @@ spring:
     import: optional:application-secret.yml
 
   redis:
-    host: localhost
+    host: 13.209.26.139
     port: 6379
     password: ${secret.redis.password}
 
