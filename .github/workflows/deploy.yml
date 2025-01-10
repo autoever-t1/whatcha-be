@@ -26,6 +26,15 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
+      # application-secret.properties 파일 만들기
+      - name: Make application-secret.properties
+        run: |
+          cd ./src/main
+          mkdir -p resources
+          cd resources
+          echo "${{ secrets.SECRET_PROPERTIES }}" > application-secret.properties
+        shell: bash
+
       - name: Docker build
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
