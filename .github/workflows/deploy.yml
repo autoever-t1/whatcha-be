@@ -69,17 +69,10 @@ jobs:
               -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
               -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
               -e AWS_REGION=${{ secrets.AWS_REGION }} \
-              -e REDIS_HOST=13.209.26.139 \
+              -e REDIS_HOST=13.125.95.74 \
               -e REDIS_PORT=6379 \
               -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
               ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
-            
-            # Check if Redis is running on the EC2 instance (optional)
-            echo "Checking Redis service..."
-            if ! nc -zv localhost 6379; then
-              echo "Redis server is not running. Please start Redis."
-              exit 1
-            fi
 
             # Remove unused images to free space
             docker image prune -a -f

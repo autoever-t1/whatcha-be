@@ -1,4 +1,22 @@
+management:
+  health:
+    diskspace:
+      enabled: true
+    default:
+      enabled: true
+    db:
+      enabled: true
+  servlet:
+    context-path: /manage
+spa:
+  default-file: /dist/index.html5
+
 spring:
+  web:
+    resources:
+      static-locations: classpath:/dist/
+      add-mappings: false
+
   application:
     name: whatcha
 
@@ -20,7 +38,7 @@ spring:
     import: optional:application-secret.yml
 
   redis:
-    host: localhost
+    host: 13.125.95.74
     port: 6379
     password: ${secret.redis.password}
 
@@ -79,6 +97,7 @@ kakao:
     redirect-uri: "http://localhost:8080/api/kakao"
     token-uri: "https://kauth.kakao.com/oauth/token"
     user-info-uri: "https://kapi.kakao.com/v2/user/me"
+
 cloud:
   aws:
     credentials:
