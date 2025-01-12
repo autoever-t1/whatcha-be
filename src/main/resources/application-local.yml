@@ -34,9 +34,6 @@ spring:
         auto: update
     show-sql: true
 
-  config:
-    import: optional:application-secret.yml
-
   redis:
     host: 172.31.37.49
     port: 6379
