@@ -68,12 +68,6 @@ jobs:
               -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
               -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
               -e AWS_REGION=${{ secrets.AWS_REGION }} \
-              -e spring.redis.host=172.31.37.49 \
-              -e spring.redis.port=6379 \
-              -e spring.redis.password=${{ secrets.REDIS_PASSWORD }} \
-              -e jwt.secret=${{ secrets.JWT_SECRET }} \
-              -e jwt.access-expired-in=3600000 \
-              -e jwt.refresh-expired-in=1296000000 \
               ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
 
             # Remove unused images to free space
