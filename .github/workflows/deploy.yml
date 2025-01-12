@@ -72,6 +72,7 @@ jobs:
               -e spring.redis.host=172.31.37.49 \
               -e spring.redis.port=6379 \
               -e spring.redis.password=${{ secrets.REDIS_PASSWORD }} \
+              -e jwt.secret=${{ secrets.JWT_SECRET }} \
               ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
 
             # Remove unused images to free space
