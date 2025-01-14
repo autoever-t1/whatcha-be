@@ -2,10 +2,13 @@ package com.example.whatcha.domain.admin.api;
 
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
+import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -23,6 +26,14 @@ public class AdminController {
         return null;
     }
 
+    //관리자 전체 쿠폰 조회하기
+    @GetMapping("/coupon")
+    public ResponseEntity<?> getAllCoupon() {
+        List<CouponAdminResDto> response = adminService.getAllAdminCoupon();
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 쿠폰 등록하기
     @PostMapping("/coupon")
     public ResponseEntity<Void> registerAdminCoupon(@RequestBody CouponReqDto couponReqDto) {
         adminService.addAdminCoupon(couponReqDto);
