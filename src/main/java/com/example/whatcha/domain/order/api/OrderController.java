@@ -29,7 +29,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new OrderProcessResDto(e.getMessage()));
         } catch (Exception e) {
             // 500 INTERNAL_SERVER_ERROR
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderProcessResDto("프로세스 진행 현황 보기 에러 발생"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderProcessResDto("프로세스 진행 현황 보기 500에러 발생"));
         }
     }
 
@@ -44,7 +44,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new OrderResDto(e.getMessage()));
         } catch (Exception e) {
             // 500 INTERNAL_SERVER_ERROR
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderResDto("주문 계약 정보 보기 에러 발생"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderResDto("주문 계약 정보 보기 500에러 발생"));
         }
     }
 

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,5 +16,11 @@ public class CouponResDto {
 
     private int maxDiscountAmount;
 
-    private int expiryDate;
+    private LocalDate expiryDate;
+
+    private String errorMessage;
+
+    public CouponResDto(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 }
