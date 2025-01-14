@@ -65,6 +65,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/whatcha/**",
             "/api/kakao",
             "/api/upload",
+            "/api/order/deposit"
     };
 
     /**
