@@ -1,8 +1,10 @@
 package com.example.whatcha.domain.admin.service;
 
 import com.example.whatcha.domain.coupon.dao.CouponRepository;
+import com.example.whatcha.domain.coupon.domain.Coupon;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
+import com.example.whatcha.domain.coupon.exception.CouponNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +33,28 @@ public class AdminServiceImpl implements AdminService {
                         .maxDiscountAmount(coupon.getMaxDiscountAmount())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CouponAdminResDto getCouponById(Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon not found with id: " + couponId));
+
+        return CouponAdminResDto.builder()
+                .couponId(coupon.getCouponId())
+                .couponCode(coupon.getCouponCode())
+                .couponName(coupon.getCouponName())
+                .discountPercentage(coupon.getDiscountPercentage())
+                .discountAmount(coupon.getDiscountAmount())
+                .maxDiscountAmount(coupon.getMaxDiscountAmount())
+                .build();
+    }
+
+    @Override
+    public void deleteCoupon(Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon not found with id: " + couponId));
+
+        couponRepository.deleteById(couponId);
     }
 }
