@@ -22,17 +22,16 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
-    username: whatcha
-    password: ${secret.mysql.password}
+    url: jdbc:mysql://localhost:3306/whatcha?serverTimezone=Asia/Seoul&characterEncoding=UTF8
+    username: root
+    password: 1234
 
   jpa:
     open-in-view: false
     hibernate:
       show_sql: true
       format_sql: true
-      hbm2ddl:
-        auto: update
+      ddl-auto: update
     show-sql: true
 
   redis:
@@ -70,7 +69,7 @@ server:
       enabled: true
       force: true
       charset: UTF-8
-    contextPath: /api
+    context-path: /api
   address: 0.0.0.0
   port: 8080
   compression:
