@@ -2,6 +2,7 @@ package com.example.whatcha.domain.usedCar.domain;
 
 import com.example.whatcha.global.entity.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,20 +11,23 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "model_image")
-public class ModelImage extends BaseEntity {
+@Table(name = "used_car_image")
+public class UsedCarImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long modelImageId;
+    private Long usedCarImageId;
 
     @ManyToOne
-    @JoinColumn(name = "model_id", nullable = false)
-    private Model model;
+    @JoinColumn(name = "used_car_id", nullable = false)
+    private UsedCar usedCar;
 
     @Column(nullable = false)
     private String image;
 
-    @Column(nullable = false)
-    private String imageType; // 내부/외부
+    @Builder
+    public UsedCarImage(UsedCar usedCar, String image) {
+        this.usedCar = usedCar;
+        this.image = image;
+    }
 
 }
