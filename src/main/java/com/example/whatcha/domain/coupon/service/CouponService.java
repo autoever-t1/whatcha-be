@@ -1,6 +1,8 @@
 package com.example.whatcha.domain.coupon.service;
 
 import com.example.whatcha.domain.coupon.dto.response.CouponResDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -10,6 +12,6 @@ public interface CouponService {
     CouponResDto addCoupon(String couponCode, Long userId);
 
     //사용자 쿠폰 리스트 확인하기
-    List<CouponResDto> getAllCoupons(Long userId);
+    Page<CouponResDto> getAllCoupons(Long userId, Pageable pageable);
 
 }

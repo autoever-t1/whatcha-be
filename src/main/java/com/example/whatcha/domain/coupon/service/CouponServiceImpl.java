@@ -11,6 +11,8 @@ import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.domain.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -63,27 +65,24 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public List<CouponResDto> getAllCoupons(Long userId) {
-        // userId로 UserCoupons 리스트 조회
-        List<UserCoupons> userCouponsList = userCouponsRepository.findAllByUserUserId(userId);
+    public Page<CouponResDto> getAllCoupons(Long userId, Pageable pageable) {
+        // userId로 UserCoupons 페이지 조회
+        Page<UserCoupons> userCouponsPage = userCouponsRepository.findAllByUserUserId(userId, pageable);
 
-        // 각 UserCoupons에서 couponId를 추출하여 Coupon 정보 조회 및 변환
-        return userCouponsList.stream()
-                .map(userCoupon -> {
-                    // couponId로 Coupon 조회
-                    Coupon coupon = couponRepository.findById(userCoupon.getCoupon().getCouponId())
-                            .orElseThrow(() -> new CouponNotFoundException("Coupon not found for id: " + userCoupon.getCoupon().getCouponId()));
+        // 각 UserCoupons에서 Coupon 정보를 조회하고 CouponResDto로 변환
+        return userCouponsPage.map(userCoupon -> {
+            Coupon coupon = couponRepository.findById(userCoupon.getCoupon().getCouponId())
+                    .orElseThrow(() -> new CouponNotFoundException("Coupon not found for id: " + userCoupon.getCoupon().getCouponId()));
 
-                    // Coupon과 UserCoupons 정보를 기반으로 CouponResDto 생성
-                    return CouponResDto.builder()
-                            .couponName(coupon.getCouponName())
-                            .discountPercentage(coupon.getDiscountPercentage())
-                            .maxDiscountAmount(coupon.getMaxDiscountAmount())
-                            .expiryDate(userCoupon.getExpiryDate())
-                            .build();
-                })
-                .collect(Collectors.toList());
+            return CouponResDto.builder()
+                    .couponName(coupon.getCouponName())
+                    .discountPercentage(coupon.getDiscountPercentage())
+                    .maxDiscountAmount(coupon.getMaxDiscountAmount())
+                    .expiryDate(userCoupon.getExpiryDate())
+                    .build();
+        });
     }
+
 
 
 }

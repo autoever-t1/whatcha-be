@@ -4,6 +4,8 @@ import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +30,11 @@ public class AdminController {
 
     //관리자 전체 쿠폰 조회하기
     @GetMapping("/coupon")
-    public ResponseEntity<?> getAllCoupon() {
-        List<CouponAdminResDto> response = adminService.getAllAdminCoupon();
+    public ResponseEntity<Page<CouponAdminResDto>> getAllAdminCoupon(Pageable pageable) {
+        Page<CouponAdminResDto> response = adminService.getAllAdminCoupon(pageable);
         return ResponseEntity.ok(response);
     }
+
 
     //관리자 쿠폰 등록하기
     @PostMapping("/coupon")

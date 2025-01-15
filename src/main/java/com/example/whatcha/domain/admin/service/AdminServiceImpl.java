@@ -6,6 +6,8 @@ import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import com.example.whatcha.domain.coupon.exception.CouponNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,8 +24,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<CouponAdminResDto> getAllAdminCoupon() {
-        return couponRepository.findAll().stream()
+    public Page<CouponAdminResDto> getAllAdminCoupon(Pageable pageable) {
+        return couponRepository.findAll(pageable)
                 .map(coupon -> CouponAdminResDto.builder()
                         .couponId(coupon.getCouponId())
                         .couponCode(coupon.getCouponCode())
@@ -31,9 +33,9 @@ public class AdminServiceImpl implements AdminService {
                         .discountPercentage(coupon.getDiscountPercentage())
                         .discountAmount(coupon.getDiscountAmount())
                         .maxDiscountAmount(coupon.getMaxDiscountAmount())
-                        .build())
-                .collect(Collectors.toList());
+                        .build());
     }
+
 
     @Override
     public CouponAdminResDto getCouponById(Long couponId) {
