@@ -1,6 +1,7 @@
 package com.example.whatcha.domain.interest.api;
 
 import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
+import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.interest.service.InterestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,9 +37,16 @@ public class InterestController {
 
 //    @GetMapping("/recommended-cars")
 
-//    @DeleteMapping("/alert-cars/{modelId}")
-//    public ResponseEntity<Void> deleteStockNotification(@PathVariable Long modelId) {
-//
-//        return ResponseEntity.noContent().build();
-//    }
+//    @PostMapping("/alert-cars/{modelId}")
+
+    @GetMapping("/alert-cars")
+    public ResponseEntity<List<UserCarAlertResponseDto>> getAlertedModelList() {
+        List<UserCarAlertResponseDto> alertedModelList = interestService.getAlertedModelList(userId);
+        return ResponseEntity.ok(alertedModelList);
+    }
+    @DeleteMapping("/alert-cars/{modelId}")
+    public ResponseEntity<Void> deleteStockNotification(@PathVariable Long modelId) {
+        interestService.deleteAlertByUserAndModel(userId, modelId);
+        return ResponseEntity.noContent().build();
+    }
 }

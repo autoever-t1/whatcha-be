@@ -1,8 +1,11 @@
 package com.example.whatcha.domain.interest.service;
 
 import com.example.whatcha.domain.interest.dao.LikedCarRepository;
+import com.example.whatcha.domain.interest.dao.UserCarAlertRepository;
 import com.example.whatcha.domain.interest.domain.LikedCar;
+import com.example.whatcha.domain.interest.domain.UserCarAlert;
 import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
+import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class InterestServiceImpl implements InterestService {
 
     private final LikedCarRepository likedCarRepository;
     private final UsedCarRepository usedCarRepository;
+    private final UserCarAlertRepository userCarAlertRepository;
 
     @Transactional
     @Override
@@ -74,5 +78,25 @@ public class InterestServiceImpl implements InterestService {
             likedCarRepository.save(newLikedCar);
             return true;
         }
+    }
+
+    @Transactional
+    @Override
+    public List<UserCarAlertResponseDto> getAlertedModelList(Long userId) {
+        List<UserCarAlert> userCarAlertList = userCarAlertRepository.findAllByUserId(userId);
+
+        return userCarAlertList.stream().map(userCarAlert -> UserCarAlertResponseDto.builder()
+                .userCarAlertId(userCarAlert.getUserCarAlertId())
+                .userId(userId)
+                .modelId(userCarAlert.getModel().getModelId())
+                .modelName(userCarAlert.getModel().getModelName())
+                .alertExpirationDate(userCarAlert.getAlertExpirationDate())
+                .build()).toList();
+    }
+
+    @Transactional
+    @Override
+    public void deleteAlertByUserAndModel(Long userId, Long modelId) {
+        userCarAlertRepository.deleteByUserIdAndModel_ModelId(userId, modelId);
     }
 }

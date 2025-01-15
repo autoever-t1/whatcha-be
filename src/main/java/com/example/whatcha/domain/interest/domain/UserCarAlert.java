@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.interest.domain;
 
+import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.global.entity.BaseEntity;
 import lombok.*;
 
@@ -18,6 +19,10 @@ public class UserCarAlert extends BaseEntity {
     private Long userCarAlertId;
 
     private Long userId;
-    private Long modelId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "model_id", nullable = false)
+    private Model model;
+
     private LocalDate alertExpirationDate;
 }
