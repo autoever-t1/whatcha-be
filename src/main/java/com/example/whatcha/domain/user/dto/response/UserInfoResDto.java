@@ -9,13 +9,17 @@ import lombok.Data;
 public class UserInfoResDto {
     private Long userId;
     private String email;
-    private String nickname;
+    private String name;
+    private Integer budgetMin;
+    private Integer budgetMax;
 
     public static UserInfoResDto entityToResDto(User user) {
         return UserInfoResDto.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
-                .nickname(user.getNickname())
+                .name(user.getName())
+                .budgetMin(user.getBudgetMin())
+                .budgetMax(user.getBudgetMax())
                 .build();
     }
 }
