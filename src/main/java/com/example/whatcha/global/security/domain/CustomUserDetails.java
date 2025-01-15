@@ -31,6 +31,10 @@ public class CustomUserDetails implements UserDetails {
         return auth;
     }
 
+    public UserType getUserType() {
+        return this.user.getUserType();
+    }
+
     @Override
     public String getPassword() {
         return this.user.getPassword();
@@ -60,4 +64,5 @@ public class CustomUserDetails implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }
