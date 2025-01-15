@@ -76,7 +76,7 @@ public class WebDriverService {
             // 전체 데이터 갯수 추출
             WebElement totalCountElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("em#saleVehicleTotalCount")));
             int totalCount = Integer.parseInt(totalCountElement.getText().replaceAll("[^0-9]", ""));
-            //int totalCount = 50;
+            //int totalCount = 30;
             log.info("총 차량 갯수: " + totalCount);
 
             // 데이터가 목표 갯수에 도달할 때까지 "더보기" 버튼 반복 클릭
@@ -176,6 +176,10 @@ public class WebDriverService {
 
             BranchStore branchStore = branchStoreRepository.findByBranchStoreNameContaining(cityName)
                     .orElseThrow(() -> new BranchStoreNotFoundException(BRANCH_STORE_NOT_FOUND.getMessage()));
+
+            branchStore.incrementOwnedCarCount();
+
+            branchStoreRepository.save(branchStore);
 
             WebElement detailBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("ol.base_01")));
             List<WebElement> detailList = detailBox.findElements(By.tagName("li"));

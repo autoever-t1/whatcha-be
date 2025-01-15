@@ -15,8 +15,8 @@ public class LikedCarResponseDto {
     private Long usedCarId;
     private String thumbnailUrl;
     private String modelName;
-    private LocalDate registrationDate;
-    private int mileage;
+    private String registrationDate;
+    private String mileage;
     private String vhclRegNo;
     private int price;
     private int likeCount;

@@ -21,6 +21,10 @@ public class BranchStore {
     private String location;
     private double latitude;
     private double longitude;
-    private int ownedCarCount;
+    private Integer ownedCarCount;
     private String phone;
+
+    public void incrementOwnedCarCount() {
+        this.ownedCarCount++;
+    }
 }
