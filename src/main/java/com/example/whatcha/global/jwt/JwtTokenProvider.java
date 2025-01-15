@@ -1,10 +1,13 @@
 package com.example.whatcha.global.jwt;
 
+import com.example.whatcha.domain.user.constant.UserType;
 import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
 import com.example.whatcha.global.jwt.exception.ExpiredTokenException;
 import com.example.whatcha.global.jwt.exception.InvalidTokenException;
+import com.example.whatcha.global.jwt.exception.UnauthorizedException;
+import com.example.whatcha.global.security.domain.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -56,11 +59,15 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
 
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserType userType = customUserDetails.getUserType();
+
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRED_IN);
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
+                .claim("userType", userType.name())
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -70,6 +77,7 @@ public class JwtTokenProvider {
         String refreshToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
+                .claim("userType", userType.name())
                 .setExpiration(refreshTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -168,4 +176,23 @@ public class JwtTokenProvider {
         }
     }
 
+    /**
+     * 토큰이 "관리자" 권한을 갖는지 확인합니다.
+     */
+    public boolean validateAdminToken(String token) throws TokenException {
+        try {
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+
+            String userType = claims.get("userType", String.class);
+            if (!UserType.ROLE_ADMIN.name().equals(userType)) {
+                throw new UnauthorizedException("관리자 권한이 필요합니다.");
+            }
+            return true;
+        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException |
+                 IllegalArgumentException e) {
+            throw new InvalidTokenException(INVALID_TOKEN.getMessage());
+        } catch (ExpiredJwtException e) {
+            throw new ExpiredTokenException(EXPIRED_TOKEN.getMessage());
+        }
+    }
 }

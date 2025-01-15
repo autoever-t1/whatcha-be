@@ -1,12 +1,13 @@
 package com.example.whatcha.domain.usedCar.domain;
 
+import com.example.whatcha.domain.branchStore.domain.BranchStore;
 import com.example.whatcha.global.entity.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,43 +26,77 @@ public class UsedCar extends BaseEntity {
     @JoinColumn(name = "color_id", nullable = false)
     private Color color;
 
-    private Long branchStoreId;
-
-    private LocalDate registrationDate;
-
-    @Column(nullable = false, unique = true)
-    private String vhclRegNo;
+    @ManyToOne
+    @JoinColumn(name = "branch_store_id", nullable = false)
+    private BranchStore branchStore;
 
     @Column(nullable = false)
     private String modelName;
 
-    private String modelType;
-
-    private String fuelType;
-
-    @Column(nullable = false)
-    private Integer mileage;
-
-    @Column(nullable = false)
-    private String exteriorColor;
-
-    @Column(nullable = false)
-    private String interiorColor;
-
     @Column(nullable = false)
     private Integer price;
 
-    private String status;
+    private String registrationDate; //최초등록
 
     @Column(nullable = false)
-    private Integer year;
+    private String mileage; //주행거리
 
-    private Double engineCapacity;
+    private String fuelType; //연료
 
-    private Integer passengerCapacity;
+    private Double engineCapacity; //배기량
 
-    private String driveType;
+    @Column(nullable = false)
+    private String exteriorColor; //외관컬러
 
-    private String transmission;
+    @Column(nullable = false)
+    private String interiorColor; //내장컬러
 
+    private String modelType; //차종
+
+    private Integer passengerCapacity; //승차인원
+
+    private String driveType; //구동방식
+
+    @Column(nullable = false, unique = true)
+    private String vhclRegNo; //차량번호
+
+    @Column(nullable = false)
+    private String years; //연식
+
+    private String transmission; //변속기
+
+    private String status; //-> default는 구매 가능
+
+    private String goodsNo; //carNumber
+
+    private String mainImage;
+
+    @Builder
+    public UsedCar(Long usedCarId, Model model, Color color, BranchStore branchStore, String registrationDate,
+                   String vhclRegNo, String modelName, String modelType, String fuelType, String mileage,
+                   String exteriorColor, String interiorColor, Integer price, String status, String years,
+                   Double engineCapacity, Integer passengerCapacity, String driveType, String transmission,
+                   String goodsNo, String mainImage) {
+        this.usedCarId = usedCarId;
+        this.model = model;
+        this.color = color;
+        this.branchStore = branchStore;
+        this.registrationDate = registrationDate;
+        this.vhclRegNo = vhclRegNo;
+        this.modelName = modelName;
+        this.modelType = modelType;
+        this.fuelType = fuelType;
+        this.mileage = mileage;
+        this.exteriorColor = exteriorColor;
+        this.interiorColor = interiorColor;
+        this.price = price;
+        this.status = status;
+        this.years = years;
+        this.engineCapacity = engineCapacity;
+        this.passengerCapacity = passengerCapacity;
+        this.driveType = driveType;
+        this.transmission = transmission;
+        this.goodsNo = goodsNo;
+        this.mainImage = mainImage;
+    }
 }
