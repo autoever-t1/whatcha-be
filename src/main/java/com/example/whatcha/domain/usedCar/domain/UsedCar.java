@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,7 +27,7 @@ public class UsedCar extends BaseEntity {
 
     private Long branchStoreId;
 
-    private String registrationDate;
+    private LocalDate registrationDate;
 
     @Column(nullable = false, unique = true)
     private String vhclRegNo;
@@ -48,7 +49,7 @@ public class UsedCar extends BaseEntity {
     private String interiorColor;
 
     @Column(nullable = false)
-    private Double price;
+    private Integer price;
 
     private String status;
 
