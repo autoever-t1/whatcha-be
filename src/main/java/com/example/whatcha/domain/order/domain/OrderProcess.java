@@ -27,17 +27,18 @@ public class OrderProcess {
     @JoinColumn(name = "user_coupon_id")  // 외래 키 설정
     private UserCoupons userCoupons;
 
-    private Boolean depositPaid;
+    @Builder.Default
+    private Boolean depositPaid = false;
 
-    private Boolean contractSigned;
+    @Builder.Default
+    private Boolean contractSigned = false;
 
-    private Boolean insuranceRegistered;
+    @Builder.Default
+    private Boolean fullyPaid = false;
 
-    private Boolean ownershipTransferred;
+    @Builder.Default
+    private Boolean deliveryService = false;
 
-    private Boolean deliveryService;
-
-    private Boolean fullyPaid;
-
-    private Boolean deliveryCompleted;
+    @Builder.Default
+    private Boolean deliveryCompleted = false;
 }

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class DepositResDto {
-    private Long orderId;
+    private String nickName;
     private String vhclRegNo;
     private LocalDate registrationDate;
     private String modelName;

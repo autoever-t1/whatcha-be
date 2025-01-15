@@ -73,8 +73,6 @@ public class OrderServiceImpl implements OrderService {
                 //.userCoupons(userCoupons)
                 .depositPaid(true)
                 .contractSigned(false)
-                .insuranceRegistered(false)
-                .ownershipTransferred(false)
                 .deliveryService(false)
                 .fullyPaid(false)
                 .deliveryCompleted(false)
@@ -85,7 +83,7 @@ public class OrderServiceImpl implements OrderService {
         //usercoupon에서 isActive false로 바꾸고 remaining amount계산해서 넘기기
 
         DepositResDto depositResDto = DepositResDto.builder()
-                .orderId(order.getOrderId())
+                .nickName("user객체에서 nickname찾아서 넘기기")
                 .vhclRegNo("차량번호 usedCar에서 가져오기")
                 .registrationDate(order.getCreatedAt())
                 .modelName("차량모델 usedCar에서 가져오기")
@@ -93,6 +91,69 @@ public class OrderServiceImpl implements OrderService {
                 .remainingAmount(123456789)
                 .build();
         return depositResDto;
+    }
+
+    @Override
+    public void fullPayment(Long orderId) {
+        //orderId를 통해 OrderProcess를 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
+
+        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
+        orderProcessResDto.setFullyPaid(true);
+
+        OrderProcess result = OrderProcess.builder()
+                .order(orderProcess.getOrder())  // 기존 order 설정
+                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .depositPaid(orderProcessResDto.getDepositPaid())
+                .contractSigned(orderProcessResDto.getContractSigned())
+                .fullyPaid(orderProcessResDto.getFullyPaid())
+                .deliveryService(orderProcessResDto.getDeliveryService())
+                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
+                .build();
+        orderProcessRepository.save(result);
+    }
+
+    @Override
+    public void writeContract(Long orderId) {
+        //orderId를 통해 OrderProcess를 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
+
+        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
+        orderProcessResDto.setContractSigned(true);
+
+        OrderProcess result = OrderProcess.builder()
+                .order(orderProcess.getOrder())  // 기존 order 설정
+                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .depositPaid(orderProcessResDto.getDepositPaid())
+                .contractSigned(orderProcessResDto.getContractSigned())
+                .fullyPaid(orderProcessResDto.getFullyPaid())
+                .deliveryService(orderProcessResDto.getDeliveryService())
+                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
+                .build();
+        orderProcessRepository.save(result);
+    }
+
+    @Override
+    public void deliveryService(Long orderId) {
+        //orderId를 통해 OrderProcess를 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
+
+        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
+        orderProcessResDto.setDeliveryService(true);
+
+        OrderProcess result = OrderProcess.builder()
+                .order(orderProcess.getOrder())  // 기존 order 설정
+                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .depositPaid(orderProcessResDto.getDepositPaid())
+                .contractSigned(orderProcessResDto.getContractSigned())
+                .fullyPaid(orderProcessResDto.getFullyPaid())
+                .deliveryService(orderProcessResDto.getDeliveryService())
+                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
+                .build();
+        orderProcessRepository.save(result);
     }
 
 }

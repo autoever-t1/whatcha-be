@@ -14,4 +14,15 @@ public interface OrderService {
 
     //계약금 납부하기
     DepositResDto payDeposit(Long usedCarId, int fullPayment, int deposit, Long userCouponId);
+
+    //잔금 결제하기
+    void fullPayment(Long orderId);
+
+    //계약서 서명하기
+    void writeContract(Long orderId);
+
+    //수령방법 선택하기
+    void deliveryService(Long orderId);
+
+    //배송완료
 }

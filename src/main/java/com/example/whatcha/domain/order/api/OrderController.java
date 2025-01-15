@@ -60,33 +60,31 @@ public class OrderController {
         }
     }
 
-    //할부 완납 선택?
-    @PutMapping("/{orderId}/payment-type")
-    public ResponseEntity<?> setPaymentType(@PathVariable("orderId") Long orderId) {
-        return null;
+    //잔금 결제하기
+    @PostMapping("/{orderId}/fullPayment")
+    public ResponseEntity<?> fullPayment(@PathVariable("orderId") Long orderId) {
+        orderService.fullPayment(orderId);
+        return ResponseEntity.ok().build();
     }
 
     //계약서 작성하기
     @PostMapping("/{orderId}/writeContract")
     public ResponseEntity<?> writeContract(@PathVariable("orderId") Long orderId) {
+        orderService.writeContract(orderId);
+        return ResponseEntity.ok().build();
+    }
+
+    //할부 완납 선택
+    @PutMapping("/{orderId}/payment-type")
+    public ResponseEntity<?> setPaymentType(@PathVariable("orderId") Long orderId) {
         return null;
     }
 
-    //보험 관련 -> insuranceRegistered이거 status바꿔주기
-    @GetMapping("/{orderId}/insurance-recommendations")
-    public ResponseEntity<?> getInsuranceRecommendations(@PathVariable("orderId") Long orderId) {
-        return null;
-    }
-
-    //명의이전 관련 -> ownershipTransferred status바꿔주기
-    @PostMapping("/{orderId}/ownership-transfer")
-    public ResponseEntity<?> setOwnershipTransfer(@PathVariable("orderId") Long orderId) {
-        return null;
-    }
-
-    @PutMapping("/{orderId}/delivery-method")
-    public ResponseEntity<?> setDeliveryMethod(@PathVariable("orderId") Long orderId) {
-        return null;
+    //탁송 방법 선택
+    @PutMapping("/{orderId}/deliveryService")
+    public ResponseEntity<?> deliveryService(@PathVariable("orderId") Long orderId) {
+        orderService.deliveryService(orderId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{orderId}")

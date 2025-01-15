@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.order.dto.response;
 
+import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.order.domain.OrderProcess;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,13 +16,7 @@ public class OrderProcessResDto {
 
     private Boolean depositPaid;
 
-    private Boolean fullyPayment;
-
     private Boolean contractSigned;
-
-    private Boolean insuranceRegistered;
-
-    private Boolean ownershipTransferred;
 
     private Boolean deliveryService;
 
@@ -38,8 +33,6 @@ public class OrderProcessResDto {
                 .orderId(orderProcess.getOrder().getOrderId()) // Order에서 orderId를 가져옴
                 .depositPaid(orderProcess.getDepositPaid())
                 .contractSigned(orderProcess.getContractSigned())
-                .insuranceRegistered(orderProcess.getInsuranceRegistered())
-                .ownershipTransferred(orderProcess.getOwnershipTransferred())
                 .deliveryService(orderProcess.getDeliveryService())
                 .fullyPaid(orderProcess.getFullyPaid())
                 .deliveryCompleted(orderProcess.getDeliveryCompleted())
