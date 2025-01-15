@@ -46,7 +46,8 @@ public class WebDriverService {
 
     @PostConstruct
     public void init() {
-        System.setProperty("webdriver.chrome.driver", "/Users/leejoohee/Desktop/chromedriver-mac-x64/chromedriver");
+//        System.setProperty("webdriver.chrome.driver", "/Users/leejoohee/Desktop/chromedriver-mac-x64/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-popup-blocking"); // 팝업 안 띄움
         options.addArguments("--disable-gpu"); // GPU 비활성화

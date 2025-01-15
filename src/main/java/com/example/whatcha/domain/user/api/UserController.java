@@ -150,10 +150,10 @@ public class UserController {
     /**
      * 회원 정보 수정
      */
-    @Operation(summary = "회원 정보 수정", description = "필요한 정보를 입력하여 회원 정보를 수정합니다.")
-    @PutMapping("/update")
-    public ResponseEntity<Void> updateUser(@RequestBody UpdateUserReqDto updateUserReqDto) {
-        userService.updateUser(updateUserReqDto);
+    @Operation(summary = "예상 정보 수정", description = "바꿀 예산 정보를 입력하여 수정합니다.")
+    @PutMapping("/update-budget")
+    public ResponseEntity<Void> updateBudget(@RequestBody UpdateBudgetReqDto updateBudgetReqDto) {
+        userService.updateBudget(updateBudgetReqDto);
         return ResponseEntity.ok().build();
     }
 
