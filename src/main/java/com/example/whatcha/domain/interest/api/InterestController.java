@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,9 @@ public class InterestController {
 
     @GetMapping("/liked-cars")
     public ResponseEntity<Page<LikedCarResponseDto>> getLikedCarList(
-            @PageableDefault(page = 0, size = 10) Pageable pageable
+            @PageableDefault(page = 0, size = 10,
+                    sort = "updatedAt",
+                    direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<LikedCarResponseDto> items = interestService.getLikedCarList(userId, pageable);
         return ResponseEntity.ok(items);

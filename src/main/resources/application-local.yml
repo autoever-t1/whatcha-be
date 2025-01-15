@@ -25,7 +25,7 @@ spring:
 #    url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
 #    username: whatcha
 #    password: ${secret.mysql.password}
-    driver-class-name: com.mysql.cj.jdbc.Drivert
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/whatcha
     username: root
     password: 1234
