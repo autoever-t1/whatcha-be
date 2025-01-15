@@ -46,10 +46,7 @@ public class CouponController {
                         .status(HttpStatus.NO_CONTENT)
                         .body("No coupons found for user ID: " + userId);
             }
-
-            // HTTP 200 OK & 페이지네이션
-            return ResponseEntity
-                    .ok(response);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             // 예외 발생 시 500에러 코드
             return ResponseEntity
