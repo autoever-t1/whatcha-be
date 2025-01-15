@@ -12,15 +12,17 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "liked_cars")
+@Table(name = "liked_cars",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "used_car_id"})
+        }
+)
 public class LikedCar extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long likedCarId;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)

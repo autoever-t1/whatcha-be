@@ -12,12 +12,17 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "user_car_alerts")
+@Table(name = "user_car_alerts",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "model_id"})
+        }
+)
 public class UserCarAlert extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userCarAlertId;
 
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)

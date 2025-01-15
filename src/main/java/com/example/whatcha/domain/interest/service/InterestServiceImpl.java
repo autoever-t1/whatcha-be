@@ -6,7 +6,9 @@ import com.example.whatcha.domain.interest.domain.LikedCar;
 import com.example.whatcha.domain.interest.domain.UserCarAlert;
 import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
+import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
+import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +30,7 @@ public class InterestServiceImpl implements InterestService {
     private final LikedCarRepository likedCarRepository;
     private final UsedCarRepository usedCarRepository;
     private final UserCarAlertRepository userCarAlertRepository;
+    private final ModelRepository modelRepository;
 
     @Transactional
     @Override
@@ -68,7 +73,7 @@ public class InterestServiceImpl implements InterestService {
             return likedCar.isLiked(); // 변경된 상태 반환
         } else {
             UsedCar usedCar = usedCarRepository.findById(usedCarId)
-                    .orElseThrow(() -> new IllegalArgumentException("UsedCar not found with id: " + usedCarId));
+                    .orElseThrow(() -> new EntityNotFoundException("UsedCar not found with id: " + usedCarId));
             // LikedCar 생성 및 저장
             LikedCar newLikedCar = LikedCar.builder()
                     .userId(userId)
@@ -98,5 +103,22 @@ public class InterestServiceImpl implements InterestService {
     @Override
     public void deleteAlertByUserAndModel(Long userId, Long modelId) {
         userCarAlertRepository.deleteByUserIdAndModel_ModelId(userId, modelId);
+    }
+
+    @Override
+    public UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate) {
+        if (userCarAlertRepository.existsByUserIdAndModel_ModelId(userId, modelId)) {
+            throw new IllegalArgumentException("Alert already exists for this user and model.");
+        }
+
+        Model model = modelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException("Model not found with id: " + modelId));
+
+        UserCarAlert userCarAlert = UserCarAlert.builder()
+                .userId(userId)
+                .model(model)
+                .alertExpirationDate(alertExpirationDate)
+                .build();
+
+        return userCarAlertRepository.save(userCarAlert);
     }
 }
