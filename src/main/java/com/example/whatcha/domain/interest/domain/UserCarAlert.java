@@ -15,9 +15,9 @@ import java.time.LocalDate;
 public class UserCarAlert extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long userCarAlertId;
+    private Long userCarAlertId;
 
-    private long userId;
-    private long modelId;
+    private Long userId;
+    private Long modelId;
     private LocalDate alertExpirationDate;
 }

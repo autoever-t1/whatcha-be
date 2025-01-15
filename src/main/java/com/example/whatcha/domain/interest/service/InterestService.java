@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface InterestService {
 
-//    Page<LikedCarResponseDto> getLikedCarList(Pageable pageable);
+    Page<LikedCarResponseDto> getLikedCarList(Long userId, Pageable pageable);
 
-    boolean toggleLike();
+    boolean toggleLike(Long userId, Long usedCarId);
 }
