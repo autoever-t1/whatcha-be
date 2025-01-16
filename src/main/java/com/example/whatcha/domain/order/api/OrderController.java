@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.NoSuchElementException;
-
 @RestController
 @RequestMapping("/order")
 @RequiredArgsConstructor
@@ -47,7 +45,6 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderResDto("주문 계약 정보 보기 500에러 발생"));
         }
     }
-
 
     //계약금 납부하기
     @PostMapping("/deposit")
