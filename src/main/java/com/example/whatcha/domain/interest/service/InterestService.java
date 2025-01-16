@@ -1,7 +1,7 @@
 package com.example.whatcha.domain.interest.service;
 
 import com.example.whatcha.domain.interest.domain.UserCarAlert;
-import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
+import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface InterestService {
 
-    Page<LikedCarResponseDto> getLikedCarList(Long userId, Pageable pageable);
+    Page<CarPreviewResponseDto> getLikedCarList(Long userId, Pageable pageable);
 
     boolean toggleLike(Long userId, Long usedCarId);
 
@@ -20,4 +20,6 @@ public interface InterestService {
     void deleteAlertByUserAndModel(Long userId, Long modelId);
 
     UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate);
+
+    List<CarPreviewResponseDto> getMostLikedCarList(int limit);
 }
