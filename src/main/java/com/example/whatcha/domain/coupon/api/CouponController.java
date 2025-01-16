@@ -7,6 +7,7 @@ import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class CouponController {
 
     //사용자 쿠폰 리스트 조회하시 나중에 pathvariable없애기
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getAllCoupons(@PathVariable Long userId, Pageable pageable) {
+    public ResponseEntity<?> getAllCoupons(@PathVariable Long userId, @PageableDefault(size = 10) Pageable pageable) {
         try {
             //쿠폰 리스트 조회
             Page<CouponResDto> response = couponService.getAllCoupons(userId, pageable);

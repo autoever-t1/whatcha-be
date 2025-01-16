@@ -20,4 +20,9 @@ public interface AdminService {
 
     //관리자 쿠폰 삭제하기
     void deleteCoupon(Long couponId);
+
+    //관리자 전체 회원보기
+
+
+    //관리자 회원 상세보기
 }
