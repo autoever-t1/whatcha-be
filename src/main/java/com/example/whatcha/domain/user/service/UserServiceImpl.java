@@ -11,7 +11,7 @@ import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.domain.user.dto.request.LoginReqDto;
 import com.example.whatcha.domain.user.dto.request.SignUpReqDto;
 import com.example.whatcha.domain.user.dto.request.UpdatePasswordReqDto;
-import com.example.whatcha.domain.user.dto.request.UpdateUserReqDto;
+import com.example.whatcha.domain.user.dto.request.UpdateBudgetReqDto;
 import com.example.whatcha.domain.user.dto.response.AuthenticatedResDto;
 import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
@@ -120,9 +120,11 @@ public class UserServiceImpl implements UserService {
         log.info("[로그아웃] 로그아웃 완료.");
     }
 
+    /**
+     * 예산 수정
+     */
     @Override
-    public UserInfoResDto updateUser(UpdateUserReqDto updateUserReqDto) {
-        return null;
+    public void updateBudget(UpdateBudgetReqDto updateBudgetReqDto) {
     }
 
     /**

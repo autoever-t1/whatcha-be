@@ -130,11 +130,11 @@ public class KakaoOAuthServiceImpl implements KakaoOAuthService {
                 .orElseGet(() -> registerNewUser(email, nickname, profile));
     }
 
-    private User registerNewUser(String email, String nickname, String profile) {
-        log.info("[카카오 회원가입] 신규 회원 등록 시도: 이메일 = {}, 닉네임 = {}", email, nickname);
+    private User registerNewUser(String email, String name, String profile) {
+        log.info("[카카오 회원가입] 신규 회원 등록 시도: 이메일 = {}, 닉네임 = {}", email, name);
         User newUser = User.builder()
                 .email(email)
-                .nickname(nickname)
+                .name(name)
                 .password("")
                 .userType(UserType.ROLE_SOCIAL)
                 .build();
