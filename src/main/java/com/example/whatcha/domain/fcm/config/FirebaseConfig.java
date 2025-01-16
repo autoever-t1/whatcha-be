@@ -19,7 +19,6 @@ public class FirebaseConfig {
     @PostConstruct
     public void init() {
         try (InputStream serviceAccount = firebaseConfigPath.getInputStream()) {
-            // 최신 SDK에서는 FirebaseOptions를 빌드할 때 권장하는 방식으로 변경 가능
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
