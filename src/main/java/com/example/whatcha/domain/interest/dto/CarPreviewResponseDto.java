@@ -1,17 +1,17 @@
 package com.example.whatcha.domain.interest.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LikedCarResponseDto {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class CarPreviewResponseDto {
     private Long usedCarId;
     private String thumbnailUrl;
     private String modelName;
@@ -19,5 +19,5 @@ public class LikedCarResponseDto {
     private String mileage;
     private String vhclRegNo;
     private int price;
-    private int likeCount;
+    private Integer likeCount;
 }

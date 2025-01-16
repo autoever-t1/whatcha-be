@@ -4,3 +4,7 @@ spring:
   #    active: prod
   config:
     import: application-secret.yml
+
+firebase:
+  config:
+    path: classpath:worryboxFirebaseKey.json

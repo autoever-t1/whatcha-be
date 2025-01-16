@@ -6,6 +6,7 @@ import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class AdminController {
 
     //관리자 전체 쿠폰 조회하기
     @GetMapping("/coupon")
-    public ResponseEntity<Page<CouponAdminResDto>> getAllAdminCoupon(Pageable pageable) {
+    public ResponseEntity<Page<CouponAdminResDto>> getAllAdminCoupon(@PageableDefault(size = 10) Pageable pageable) {
         Page<CouponAdminResDto> response = adminService.getAllAdminCoupon(pageable);
         return ResponseEntity.ok(response);
     }
@@ -56,6 +57,30 @@ public class AdminController {
         adminService.deleteCoupon(couponId);
         return ResponseEntity.ok().build();
     }
+
+    //관리자 전체 회원보기
+//    @GetMapping("/user")
+//    public ResponseEntity<?> getAllUser() {
+//        adminService.getAllUser();
+//        return null;
+//    }
+
+    //관리자 회원 상세보기
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getUserById(@PathVariable Long userId) {
+        return null;
+    }
+
+    //관리자 회원 통계보기 (나이대별)
+    @GetMapping("/user/statistics/age")
+    public ResponseEntity<?> getUserStatisticsByAge() {
+        return null;
+    }
+
+
+
+
+
 
 }
 
