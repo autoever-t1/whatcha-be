@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,39 +42,25 @@ public class UserController {
      */
     @Operation(summary = "회원가입", description = "필요한 정보를 입력하여 회원 가입합니다.")
     @PostMapping("/signup")
-    public ResponseEntity<Void> addUser(@RequestBody @Valid SignUpReqDto signUpReqDto) {
-        userService.signUp(signUpReqDto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
+    public ResponseEntity<UserInfoResDto> addUser(@RequestBody @Valid SignUpReqDto signUpReqDto) {
 
-    /**
-     * 이메일 중복 검사
-     * @param email 중복 여부를 확인할 이메일
-     * @return 중복 검사 결과
-     */
-    @Operation(summary = "이메일 중복 검사", description = "회원 가입 시 해당 이메일로 이미 가입한 회원이 있는지 검사합니다.")
-    @GetMapping("/check-login-email")
-    public ResponseEntity<CheckResDto> checkEmail(@RequestParam(name = "email") String email) {
-        return ResponseEntity.ok().body(emailService.checkEmailDuplicated(email));
-    }
+        AuthenticatedResDto authenticatedResDto = userService.signUp(signUpReqDto);
 
-    /**
-     * 이메일 인증 코드 전송
-     */
-    @Operation(summary = "이메일 인증 코드 전송", description = "이메일로 인증 코드를 전송합니다.")
-    @PostMapping("/send-email-code")
-    public ResponseEntity<Void> sendEmailCode(@RequestParam(name = "email") String email) {
-        emailService.sendEmailCode(email);
-        return ResponseEntity.ok().build();
-    }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + authenticatedResDto.getTokenInfo().getAccessToken());
 
-    /**
-     * 이메일 인증 코드 검사
-     */
-    @Operation(summary = "이메일 인증 코드 검사", description = "입력한 코드가 전송한 인증 코드와 일치하는지 검사합니다.")
-    @PostMapping("/check-email-code")
-    public ResponseEntity<CheckResDto> checkEmailCode(@RequestBody CheckEmailCodeReqDto checkEmailCodeReqDto) {
-        return ResponseEntity.ok().body(emailService.checkEmailCode(checkEmailCodeReqDto));
+        ResponseCookie refreshTokenCookie = ResponseCookie.from(COOKIE_NAME, authenticatedResDto.getTokenInfo().getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(REFRESH_TOKEN_EXPIRED_IN / 1000)
+                .sameSite("Strict")
+                .build();
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(authenticatedResDto.getUserInfo());
     }
 
     /**
@@ -85,11 +70,11 @@ public class UserController {
      * @param loginReqDto 로그인 요청 데이터
      * @return 로그인 결과
      */
-    @Operation(summary = "로그인", description = "아이디와 비밀번호를 입력하여 로그인합니다.")
+    @Operation(summary = "로그인", description = "카카오 로그인합니다.")
     @PostMapping("/login")
     public ResponseEntity<UserInfoResDto> login(@RequestBody LoginReqDto loginReqDto) {
 
-        AuthenticatedResDto authenticatedResDto = userService.login(loginReqDto);
+        AuthenticatedResDto authenticatedResDto = userService.kakaoLogin(loginReqDto);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + authenticatedResDto.getTokenInfo().getAccessToken());
@@ -133,7 +118,6 @@ public class UserController {
         return ResponseEntity.ok().headers(headers).build();
     }
 
-
     /**
      * 로그아웃 처리
      * Access 및 Refresh 토큰 무효화
@@ -145,28 +129,36 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-
-
     /**
-     * 회원 정보 수정
+     * 예산 정보 등록/수정
      */
-    @Operation(summary = "예상 정보 수정", description = "바꿀 예산 정보를 입력하여 수정합니다.")
-    @PutMapping("/update-budget")
-    public ResponseEntity<Void> updateBudget(@RequestBody UpdateBudgetReqDto updateBudgetReqDto) {
-        userService.updateBudget(updateBudgetReqDto);
+    @Operation(summary = "예산 정보 등록/수정", description = "예산 정보를 등록 및 수정합니다.")
+    @PutMapping("/budget")
+    public ResponseEntity<Void> updateBudget(@RequestBody BudgetReqDto budgetReqDto) {
+        userService.updateBudget(budgetReqDto);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * 비밀번호 변경
+     * 알람 동의 등록/수정
      */
-    @Operation(summary = "비밀번호 수정", description = "회원의 비밀번호를 수정합니다.")
-    @PutMapping("/password")
-    public ResponseEntity<Void> updatePassword(@RequestBody UpdatePasswordReqDto updatePasswordReqDto) {
-        log.info("수신한 요청 데이터: {}", updatePasswordReqDto.getPassword());
-        userService.updatePassword(updatePasswordReqDto);
+    @Operation(summary = "알람 동의 등록/수정", description = "알람 동의 정보를 등록 및 수정합니다.")
+    @PutMapping("/consent")
+    public ResponseEntity<Void> updateConsent(@RequestBody ConsentReqDto consentReqDto) {
+        userService.updateConsent(consentReqDto);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 선호하는 모델 수정/등록
+     */
+    @Operation(summary = "선호하는 모델 수정/등록", description = "선호하는 모델 정보를 등록 및 수정합니다.")
+    @PutMapping("/preference")
+    public ResponseEntity<Void> updatePreference(@RequestBody PreferenceModelReqDto preferenceModelReqDto) {
+        userService.updatePreference(preferenceModelReqDto);
+        return ResponseEntity.ok().build();
+    }
+
 
     /**
      * 회원 탈퇴
@@ -186,4 +178,35 @@ public class UserController {
     public ResponseEntity<UserInfoResDto> findUser() {
         return ResponseEntity.ok().body(userService.findUser());
     }
+
+    /**
+     * 이메일 중복 검사
+     * @param email 중복 여부를 확인할 이메일
+     * @return 중복 검사 결과
+     */
+    @Operation(summary = "이메일 중복 검사", description = "회원 가입 시 해당 이메일로 이미 가입한 회원이 있는지 검사합니다.")
+    @GetMapping("/check-login-email")
+    public ResponseEntity<CheckResDto> checkEmail(@RequestParam(name = "email") String email) {
+        return ResponseEntity.ok().body(emailService.checkEmailDuplicated(email));
+    }
+
+    /**
+     * 이메일 인증 코드 전송
+     */
+    @Operation(summary = "이메일 인증 코드 전송", description = "이메일로 인증 코드를 전송합니다.")
+    @PostMapping("/send-email-code")
+    public ResponseEntity<Void> sendEmailCode(@RequestParam(name = "email") String email) {
+        emailService.sendEmailCode(email);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 이메일 인증 코드 검사
+     */
+    @Operation(summary = "이메일 인증 코드 검사", description = "입력한 코드가 전송한 인증 코드와 일치하는지 검사합니다.")
+    @PostMapping("/check-email-code")
+    public ResponseEntity<CheckResDto> checkEmailCode(@RequestBody CheckEmailCodeReqDto checkEmailCodeReqDto) {
+        return ResponseEntity.ok().body(emailService.checkEmailCode(checkEmailCodeReqDto));
+    }
+
 }

@@ -6,17 +6,19 @@ import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 
 public interface UserService {
-    void signUp(SignUpReqDto userInfoReqDto); //회원가입
+    AuthenticatedResDto signUp(SignUpReqDto signUpReqDto); //회원가입
 
-    AuthenticatedResDto login(LoginReqDto loginReqDto); //로그인
+    AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto); //로그인
 
     void logout(String accessToken); //로그아웃
 
-    void updateBudget(UpdateBudgetReqDto updateBudgetReqDto); //예산 수정
+    void updateBudget(BudgetReqDto budgetReqDto); //예산 등록 & 수정
+
+    void updateConsent(ConsentReqDto consentReqDto); //알람 동의 등록 & 수정
+
+    void updatePreference(PreferenceModelReqDto preferenceModelReqDto); //선호 모델 등록 & 수정
 
     void deleteUser(); //회원 탈퇴
-
-    void updatePassword(UpdatePasswordReqDto updatePasswordReqDto); //비밀번호 변경
 
     UserInfoResDto findUser(); //정보 조회
 

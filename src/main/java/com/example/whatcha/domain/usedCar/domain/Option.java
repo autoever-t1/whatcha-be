@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "options")
 @Entity
 public class Option extends BaseEntity {
     @Id

@@ -47,7 +47,10 @@ public class WebDriverService {
     //"/Users/user/leejoohee/Desktop/chromedriver-mac-x64/chromedriver"
     @PostConstruct
     public void init() {
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\User\\Desktop\\chromedriver-win64\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "/Users/leejoohee/Desktop/chromedriver-mac-x64/chromedriver");
+//        System.setProperty("webdriver.chrome.driver", "/chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver", "C:\\Users\\User\\Desktop\\chromedriver-win64\\chromedriver.exe");
+      
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-popup-blocking"); // 팝업 안 띄움
         options.addArguments("--disable-gpu"); // GPU 비활성화
@@ -76,8 +79,8 @@ public class WebDriverService {
 
             // 전체 데이터 갯수 추출
             WebElement totalCountElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("em#saleVehicleTotalCount")));
-            int totalCount = Integer.parseInt(totalCountElement.getText().replaceAll("[^0-9]", ""));
-            //int totalCount = 30;
+//            int totalCount = Integer.parseInt(totalCountElement.getText().replaceAll("[^0-9]", ""));
+            int totalCount = 650;
             log.info("총 차량 갯수: " + totalCount);
 
             // 데이터가 목표 갯수에 도달할 때까지 "더보기" 버튼 반복 클릭

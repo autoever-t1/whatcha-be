@@ -23,21 +23,19 @@ public class CustomUserDetails implements UserDetails {
 
         if (this.user.getUserType().equals(UserType.ROLE_ADMIN)) {
             auth.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        } else if (this.user.getUserType().equals(UserType.ROLE_SOCIAL)) {
-            auth.add(new SimpleGrantedAuthority("ROLE_SOCIAL"));
         } else {
             auth.add(new SimpleGrantedAuthority("ROLE_USER"));
         }
         return auth;
     }
 
-    public UserType getUserType() {
-        return this.user.getUserType();
-    }
-
     @Override
     public String getPassword() {
-        return this.user.getPassword();
+        return "";
+    }
+
+    public UserType getUserType() {
+        return this.user.getUserType();
     }
 
     @Override

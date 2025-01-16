@@ -36,3 +36,9 @@ spring:
       host: 172.31.37.49
       port: 6379
       password: ${secret.redis.password}
+
+jwt:
+  refresh-expired-in: '1296000000'  # Refresh Token (15)
+  access-expired-in: '3600000' # Access Token (1)
+  cookieName: refreshToken
+  secret: ${secret-jwt.secret}
