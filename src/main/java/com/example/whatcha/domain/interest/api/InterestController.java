@@ -1,13 +1,12 @@
 package com.example.whatcha.domain.interest.api;
 
 import com.example.whatcha.domain.interest.domain.UserCarAlert;
-import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
+import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertRequestDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.interest.service.InterestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -28,12 +26,12 @@ public class InterestController {
     private Long userId = 200L;
 
     @GetMapping("/liked-cars")
-    public ResponseEntity<Page<LikedCarResponseDto>> getLikedCarList(
+    public ResponseEntity<Page<CarPreviewResponseDto>> getLikedCarList(
             @PageableDefault(page = 0, size = 10,
                     sort = "updatedAt",
                     direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<LikedCarResponseDto> items = interestService.getLikedCarList(userId, pageable);
+        Page<CarPreviewResponseDto> items = interestService.getLikedCarList(userId, pageable);
         return ResponseEntity.ok(items);
     }
 
@@ -66,9 +64,18 @@ public class InterestController {
         List<UserCarAlertResponseDto> alertedModelList = interestService.getAlertedModelList(userId);
         return ResponseEntity.ok(alertedModelList);
     }
+
     @DeleteMapping("/alert-cars/{modelId}")
     public ResponseEntity<Void> deleteStockNotification(@PathVariable Long modelId) {
         interestService.deleteAlertByUserAndModel(userId, modelId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/liked-cars/most-liked")
+    public ResponseEntity<List<CarPreviewResponseDto>> getMostLikedCarList(@RequestParam(defaultValue = "5") int limit) {
+        List<CarPreviewResponseDto> mostLikedCars = interestService.getMostLikedCarList(limit);
+
+        return ResponseEntity.ok(mostLikedCars);
+    }
+
 }
