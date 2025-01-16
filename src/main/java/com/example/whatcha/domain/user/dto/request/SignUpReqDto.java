@@ -15,13 +15,13 @@ public class SignUpReqDto {
     private String email;
     @Length(min = 8, max = 16, message = "비밀번호는 최소 8글자 최대 16글자 입니다.")
     private String password;
-    private String nickname;
+    private String name;
 
     public User dtoToEntity() {
         return User.builder()
                 .email(email)
                 .password(password)
-                .nickname(nickname)
+                .name(name)
                 .userType(UserType.ROLE_USER)
                 .build();
     }

@@ -8,5 +8,5 @@ import lombok.Data;
 public class LoginResDto {
     private String userType;
     private Long userId;
-    private String nickname;
+    private String name;
 }

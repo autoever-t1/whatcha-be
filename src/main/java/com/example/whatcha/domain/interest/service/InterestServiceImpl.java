@@ -4,7 +4,7 @@ import com.example.whatcha.domain.interest.dao.LikedCarRepository;
 import com.example.whatcha.domain.interest.dao.UserCarAlertRepository;
 import com.example.whatcha.domain.interest.domain.LikedCar;
 import com.example.whatcha.domain.interest.domain.UserCarAlert;
-import com.example.whatcha.domain.interest.dto.LikedCarResponseDto;
+import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
@@ -12,6 +12,7 @@ import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class InterestServiceImpl implements InterestService {
 
     @Transactional
     @Override
-    public Page<LikedCarResponseDto> getLikedCarList(Long userId, Pageable pageable) {
+    public Page<CarPreviewResponseDto> getLikedCarList(Long userId, Pageable pageable) {
         List<Object[]> likeCounts = likedCarRepository.findLikeCountsForUserLikedCars(userId);
 
         Map<Long, Integer> likeCountMap = likeCounts.stream()
@@ -49,8 +50,9 @@ public class InterestServiceImpl implements InterestService {
             UsedCar usedCar = likedCar.getUsedCar();
             Integer likeCount = likeCountMap.getOrDefault(usedCar.getUsedCarId(), 0);
 
-            return LikedCarResponseDto.builder()
+            return CarPreviewResponseDto.builder()
                     .usedCarId(usedCar.getUsedCarId())
+                    .thumbnailUrl("")
                     .modelName(usedCar.getModelName())
                     .registrationDate(usedCar.getRegistrationDate())
                     .mileage(usedCar.getMileage())
@@ -120,5 +122,21 @@ public class InterestServiceImpl implements InterestService {
                 .build();
 
         return userCarAlertRepository.save(userCarAlert);
+    }
+
+    @Override
+    public List<CarPreviewResponseDto> getMostLikedCarList(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<UsedCar> topLikedCars = likedCarRepository.findTopLikedCars(pageable);
+
+        return topLikedCars.stream().map(usedCar -> CarPreviewResponseDto.builder()
+                .usedCarId(usedCar.getUsedCarId())
+                .thumbnailUrl("")
+                .modelName(usedCar.getModelName())
+                .registrationDate(usedCar.getRegistrationDate())
+                .mileage(usedCar.getMileage())
+                .vhclRegNo(usedCar.getVhclRegNo())
+                .price(usedCar.getPrice())
+                .build()).toList();
     }
 }

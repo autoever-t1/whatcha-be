@@ -12,7 +12,7 @@ public interface UserService {
 
     void logout(String accessToken); //로그아웃
 
-    UserInfoResDto updateUser(UpdateUserReqDto updateUserReqDto); //회원 정보 수정
+    void updateBudget(UpdateBudgetReqDto updateBudgetReqDto); //예산 수정
 
     void deleteUser(); //회원 탈퇴
 
