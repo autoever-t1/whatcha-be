@@ -52,7 +52,7 @@ public class InterestServiceImpl implements InterestService {
 
             return CarPreviewResponseDto.builder()
                     .usedCarId(usedCar.getUsedCarId())
-                    .thumbnailUrl("")
+                    .thumbnailUrl(usedCar.getMainImage())
                     .modelName(usedCar.getModelName())
                     .registrationDate(usedCar.getRegistrationDate())
                     .mileage(usedCar.getMileage())
@@ -131,7 +131,7 @@ public class InterestServiceImpl implements InterestService {
 
         return topLikedCars.stream().map(usedCar -> CarPreviewResponseDto.builder()
                 .usedCarId(usedCar.getUsedCarId())
-                .thumbnailUrl("")
+                .thumbnailUrl(usedCar.getMainImage())
                 .modelName(usedCar.getModelName())
                 .registrationDate(usedCar.getRegistrationDate())
                 .mileage(usedCar.getMileage())
