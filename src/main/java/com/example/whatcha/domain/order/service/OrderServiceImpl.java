@@ -10,6 +10,9 @@ import com.example.whatcha.domain.order.domain.OrderProcess;
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.user.dao.UserRepository;
+import com.example.whatcha.domain.user.domain.User;
+import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderProcessRepository orderProcessRepository;
     private final UserCouponsRepository userCouponsRepository;
     private final CouponRepository couponRepository;
+    private final UserRepository userRepository;
 
     @Override
     public OrderProcessResDto getOrderProcess(Long orderId) {
@@ -57,6 +61,10 @@ public class OrderServiceImpl implements OrderService {
 
         //진짜 유저 데이터 가져와서 넣기 & 진짜 usedCar데이터
         //usedCarId로 usedCar객체 찾기
+
+        String userEmail = SecurityUtils.getLoginUserEmail();
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+
 
         Order order = Order.builder()
                 //.userCoupons(userCoupons)
