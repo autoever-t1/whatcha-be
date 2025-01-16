@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto) {
-        log.info("[카카오 로그인] 카카오 로그인 정보: accessToken = {}, refreshToken = {}, appToken = {}, email = {}, name = {}",
+        log.info("[카카오 로그인] 카카오 로그인 정보: appToken = {}, email = {}, name = {}",
                 loginReqDto.getAppToken(), loginReqDto.getEmail(), loginReqDto.getName());
 
         // 이미 가입된 사용자 확인

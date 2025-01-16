@@ -71,12 +71,15 @@ public class UsedCar extends BaseEntity {
 
     private String mainImage;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer likeCount;
+
     @Builder
     public UsedCar(Long usedCarId, Model model, Color color, BranchStore branchStore, String registrationDate,
                    String vhclRegNo, String modelName, String modelType, String fuelType, String mileage,
                    String exteriorColor, String interiorColor, Integer price, String status, String years,
                    Double engineCapacity, Integer passengerCapacity, String driveType, String transmission,
-                   String goodsNo, String mainImage) {
+                   String goodsNo, String mainImage, Integer likeCount) {
         this.usedCarId = usedCarId;
         this.model = model;
         this.color = color;
@@ -98,5 +101,10 @@ public class UsedCar extends BaseEntity {
         this.transmission = transmission;
         this.goodsNo = goodsNo;
         this.mainImage = mainImage;
+        this.likeCount = (likeCount != null) ? likeCount : 0;
+    }
+
+    public void updateLikeCount() {
+        this.likeCount += 1;
     }
 }
