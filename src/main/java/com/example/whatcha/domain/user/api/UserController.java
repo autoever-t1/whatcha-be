@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,11 +55,11 @@ public class UserController {
                 .secure(true)
                 .path("/")
                 .maxAge(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .headers(headers)
                 .body(authenticatedResDto.getUserInfo());
     }
@@ -84,7 +85,7 @@ public class UserController {
                 .secure(true)
                 .path("/")
                 .maxAge(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
@@ -111,7 +112,7 @@ public class UserController {
                 .secure(true)
                 .path("/")
                 .maxAge(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
         headers.add(HttpHeaders.SET_COOKIE, newRefreshTokenCookie.toString());
 
