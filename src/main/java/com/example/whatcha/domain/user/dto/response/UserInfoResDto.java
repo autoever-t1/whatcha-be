@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.user.dto.response;
 
+import com.example.whatcha.domain.user.constant.UserType;
 import com.example.whatcha.domain.user.domain.User;
 import lombok.Builder;
 import lombok.Data;
@@ -9,13 +10,39 @@ import lombok.Data;
 public class UserInfoResDto {
     private Long userId;
     private String email;
-    private String nickname;
+    private String name;
+    private String address;
+    private UserType userType;
+    private Integer ageGroup;
+    private String phone;
+    private Integer budgetMin;
+    private Integer budgetMax;
+    private Boolean isNotificationAgreed;
+    private Boolean isLocationAgreed;
+    private Long preferenceModelId1;
+    private Long preferenceModelId2;
+    private Long preferenceModelId3;
+    private Double latitude;
+    private Double longitude;
 
     public static UserInfoResDto entityToResDto(User user) {
         return UserInfoResDto.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
-                .nickname(user.getNickname())
+                .name(user.getName())
+                .address(user.getAddress())
+                .userType(user.getUserType())
+                .ageGroup(user.getAgeGroup())
+                .phone(user.getPhone())
+                .budgetMin(user.getBudgetMin())
+                .budgetMax(user.getBudgetMax())
+                .isNotificationAgreed(user.getIsNotificationAgreed())
+                .isLocationAgreed(user.getIsLocationAgreed())
+                .preferenceModelId1(user.getPreferenceModelId1())
+                .preferenceModelId2(user.getPreferenceModelId2())
+                .preferenceModelId3(user.getPreferenceModelId3())
+                .latitude(user.getLatitude())
+                .longitude(user.getLongitude())
                 .build();
     }
 }

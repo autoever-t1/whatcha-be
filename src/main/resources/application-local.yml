@@ -1,3 +1,9 @@
+firebase:
+  config:
+    path: classpath:worryboxFirebaseKey.json
+  fcm:
+    api-url: https://fcm.googleapis.com/v1/projects/carapp-b1777/messages:send
+
 management:
   health:
     diskspace:
@@ -8,6 +14,7 @@ management:
       enabled: true
   servlet:
     context-path: /manage
+
 spa:
   default-file: /dist/index.html5
 
@@ -20,6 +27,11 @@ spring:
   application:
     name: whatcha
 
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/whatcha
+#    username: root
+#    password: 1234
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
@@ -27,12 +39,10 @@ spring:
     password: ${secret.mysql.password}
 
   jpa:
-    open-in-view: false
     hibernate:
       show_sql: true
       format_sql: true
-      hbm2ddl:
-        auto: update
+      ddl-auto: update
     show-sql: true
 
   redis:
@@ -48,7 +58,6 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
-
 
 logging:
   level:
@@ -70,20 +79,22 @@ server:
       enabled: true
       force: true
       charset: UTF-8
-    contextPath: /api
+    context-path: /api
   address: 0.0.0.0
   port: 8080
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+
 build:
   date: "@build.date@"
 
 jwt:
-  refresh-expired-in: '1296000000'  # Refresh Token ?? ?? (15?)
-  access-expired-in: '3600000' # Access Token ?? ?? (1??)
+  refresh-expired-in: '1296000000'  # Refresh Token 만료 시간 (15일)
+  access-expired-in: '3600000'      # Access Token 만료 시간 (1시간)
   cookieName: refreshToken
   secret: ${secret-jwt.secret}
+
 springfox:
   documentation:
     swagger:

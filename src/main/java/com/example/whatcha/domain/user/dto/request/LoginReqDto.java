@@ -7,5 +7,6 @@ import lombok.Data;
 @Builder
 public class LoginReqDto {
     private String email;
-    private String password;
+    private String name;
+    private String appToken;
 }

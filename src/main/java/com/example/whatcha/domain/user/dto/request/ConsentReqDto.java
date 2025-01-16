@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UpdateUserReqDto {
-    private String nickname;
+public class ConsentReqDto {
+    private Boolean isNottificationAgreed;
+    private Boolean isLocationAgreed;
 }
