@@ -1,6 +1,5 @@
 package com.example.whatcha.domain.user.service;
 
-import com.example.whatcha.domain.user.constant.EmailExceptionMessage;
 import com.example.whatcha.domain.user.constant.UserExceptionMessage;
 import com.example.whatcha.domain.user.dao.LogoutAccessTokenRedisRepository;
 import com.example.whatcha.domain.user.dao.RefreshTokenRedisRepository;
@@ -8,15 +7,12 @@ import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.LogoutAccessToken;
 import com.example.whatcha.domain.user.domain.RefreshToken;
 import com.example.whatcha.domain.user.domain.User;
-import com.example.whatcha.domain.user.dto.request.LoginReqDto;
-import com.example.whatcha.domain.user.dto.request.SignUpReqDto;
-import com.example.whatcha.domain.user.dto.request.UpdatePasswordReqDto;
-import com.example.whatcha.domain.user.dto.request.UpdateBudgetReqDto;
+import com.example.whatcha.domain.user.dto.request.*;
 import com.example.whatcha.domain.user.dto.response.AuthenticatedResDto;
 import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
-import com.example.whatcha.domain.user.exception.EmailVerificationException;
 import com.example.whatcha.domain.user.exception.InvalidSignUpException;
+import com.example.whatcha.domain.user.exception.UserNotFoundException;
 import com.example.whatcha.global.exception.NotFoundException;
 import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
@@ -27,13 +23,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+
+import javax.transaction.Transactional;
+import java.util.Collections;
 
 import static com.example.whatcha.domain.user.constant.UserExceptionMessage.*;
 
@@ -46,8 +43,7 @@ public class UserServiceImpl implements UserService {
     private final UserRedisService userRedisService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenRedisRepository refreshTokenRepository;
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final LogoutAccessTokenRedisRepository logoutAccessTokenRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -55,51 +51,81 @@ public class UserServiceImpl implements UserService {
     private long REFRESH_TOKEN_EXPIRED_IN;
 
     /**
-     * 사용자 회원가입
+     * 로그인 처리 후 Access 및 Refresh Token 발급
      */
+    @Transactional
     @Override
-    public void signUp(SignUpReqDto userInfoReqDto) {
-        // 이메일 중복 검사
-        String email = userInfoReqDto.getEmail();
-        log.info("[회원가입] 회원가입 요청. email : {}", email);
+    public AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto) {
+        log.info("[카카오 로그인] 카카오 로그인 정보: accessToken = {}, refreshToken = {}, appToken = {}, email = {}, name = {}",
+                loginReqDto.getAppToken(), loginReqDto.getEmail(), loginReqDto.getName());
+
+        // 이미 가입된 사용자 확인
+        User user = userRepository.findByEmail(loginReqDto.getEmail())
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND.getMessage()));
+
+        log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
+
+        // JWT 토큰 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
+        );
+
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+
+        // Refresh Token을 Redis에 저장
+        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+
+        // 응답 객체 반환
+        return AuthenticatedResDto.builder()
+                .userInfo(UserInfoResDto.entityToResDto(user))
+                .tokenInfo(tokenInfo)
+                .build();
+    }
+
+
+    @Override
+    public AuthenticatedResDto signUp(SignUpReqDto signUpReqDto) {
+        log.info("[카카오 회원가입] 신규 회원 등록 시도: 이메일 = {}, 이름 = {}", signUpReqDto.getEmail(), signUpReqDto.getName());
 
         // 회원가입 정보 유효성 확인
-        if (!checkSignupInfo(userInfoReqDto)) {
-            log.error("[회원가입] 회원가입 정보 유효성 불일치.");
+        if (userRepository.findByEmail(signUpReqDto.getEmail()) != null) {
+            log.error("[회원가입] 이미 등록 된 회원.");
             throw new InvalidSignUpException(UserExceptionMessage.SIGN_UP_NOT_VALID.getMessage());
         }
 
-        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        User user = userRepository.save(signUpReqDto.dtoToEntity());
 
-        // 이메일 인증 여부 확인
-        String checkResult = (String) valueOperations.get(userInfoReqDto.getEmail());
-        if (!"verified".equals(checkResult)) {
-            throw new EmailVerificationException(EmailExceptionMessage.EMAIL_CHECK_FAILED.getMessage());
-        }
-        log.info("[회원가입] 이메일 인증 완료.");
+        log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
-        // 패스워드 암호화
-        userInfoReqDto.setPassword(passwordEncoder.encode(userInfoReqDto.getPassword()));
-        log.info("[회원가입] 패스워드 암호화 완료.");
+        // JWT 토큰 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
+        );
 
-        User user = userRepository.save(userInfoReqDto.dtoToEntity());
-        log.info("[회원가입] 회원가입이 완료되었습니다.");
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+
+        // Refresh Token을 Redis에 저장
+        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+
+        // 응답 객체 반환
+        return AuthenticatedResDto.builder()
+                .userInfo(UserInfoResDto.entityToResDto(user))
+                .tokenInfo(tokenInfo)
+                .build();
     }
 
-    /**
-     * 로그인 처리 후 Access 및 Refresh Token 발급
-     */
-    @Override
-    public AuthenticatedResDto login(LoginReqDto loginReqDto) {
-        TokenInfo tokenInfo = setFirstAuthentication(loginReqDto.getEmail(),
-                loginReqDto.getPassword());
-        log.info("[유저 로그인] 로그인 요청. {} ", tokenInfo);
+    private void saveRefreshTokenInRedis(String email, String refreshToken) {
+        RefreshToken token = RefreshToken.builder()
+                .email(email)
+                .refreshToken(refreshToken)
+                .expiration(REFRESH_TOKEN_EXPIRED_IN)
+                .build();
 
-        User user = userRepository.findByEmail(loginReqDto.getEmail()).get();
-        logoutAccessTokenRepository.deleteById(loginReqDto.getEmail());
-        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
-
-        return AuthenticatedResDto.entityToResDto(tokenInfo, user);
+        refreshTokenRedisRepository.save(token);
     }
 
     /**
@@ -110,7 +136,7 @@ public class UserServiceImpl implements UserService {
         // 로그아웃 여부 redis에 넣어서 accessToken가 유효한지 확인
         String email = SecurityUtils.getLoginUserEmail();
         long remainMilliSeconds = jwtTokenProvider.getRemainingExpiration(accessToken);
-        refreshTokenRepository.deleteById(email);
+        refreshTokenRedisRepository.deleteById(email);
         logoutAccessTokenRepository.save(LogoutAccessToken.builder()
                 .email(email)
                 .accessToken(accessToken)
@@ -124,7 +150,34 @@ public class UserServiceImpl implements UserService {
      * 예산 수정
      */
     @Override
-    public void updateBudget(UpdateBudgetReqDto updateBudgetReqDto) {
+    public void updateBudget(BudgetReqDto budgetReqDto) {
+        String email = SecurityUtils.getLoginUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidSignUpException(UserExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        user.updateBudget(budgetReqDto);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void updateConsent(ConsentReqDto consentReqDto) {
+        String email = SecurityUtils.getLoginUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidSignUpException(UserExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        user.updateConsent(consentReqDto);
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public void updatePreference(PreferenceModelReqDto preferenceModelReqDto) {
+        String email = SecurityUtils.getLoginUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidSignUpException(UserExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        user.updatePreferenceModel(preferenceModelReqDto);
+        userRepository.save(user);
     }
 
     /**
@@ -140,23 +193,6 @@ public class UserServiceImpl implements UserService {
 
         userRedisService.deleteRefreshToken(user.getEmail());
         userRepository.deleteByEmail(email);
-    }
-
-    /**
-     * 비밀번호 변경, 일치 여부 확인
-     */
-    @Override
-    public void updatePassword(UpdatePasswordReqDto newPassword) {
-        String email = SecurityUtils.getLoginUserEmail();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidSignUpException(UserExceptionMessage.USER_NOT_FOUND.getMessage()));
-
-        log.info("[비밀번호 변경] 변경 요청. 로그인 유저: {}", user.getEmail());
-
-        user.updatePassword(passwordEncoder.encode(newPassword.getPassword()));
-        userRepository.save(user);
-
-        log.info("[비밀번호 수정] 비밀번호 수정 완료. 이메일: {}", email);
     }
 
     @Override
@@ -189,6 +225,25 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 새로운 Token 생성 후 Redis에 저장
+     */
+    private TokenInfo addTokens(String email) {
+        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, null);
+        TokenInfo newTokens = jwtTokenProvider.generateToken(authentication);
+
+        refreshTokenRedisRepository.deleteById(email);
+        refreshTokenRedisRepository.save(
+                RefreshToken.builder()
+                        .email(email)
+                        .refreshToken(newTokens.getRefreshToken())
+                        .expiration(REFRESH_TOKEN_EXPIRED_IN / 1000)
+                        .build()
+        );
+
+        return newTokens;
+    }
+
+    /**
      * Refresh Token에서 이메일 추출
      */
     private String getEmailFromToken(String refreshToken) {
@@ -204,7 +259,7 @@ public class UserServiceImpl implements UserService {
      * Refresh Token의 유효성 확인
      */
     private void checkRefreshToken(String refreshToken, String email) {
-        String storedToken = refreshTokenRepository.findById(email)
+        String storedToken = refreshTokenRedisRepository.findById(email)
                 .orElseThrow(() -> new NotFoundException(REFRESH_TOKEN_NOT_FOUND.getMessage()))
                 .getRefreshToken();
 
@@ -214,45 +269,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * 새로운 Token 생성 후 Redis에 저장
-     */
-    private TokenInfo addTokens(String email) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, null);
-        TokenInfo newTokens = jwtTokenProvider.generateToken(authentication);
-
-        refreshTokenRepository.deleteById(email);
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .email(email)
-                        .refreshToken(newTokens.getRefreshToken())
-                        .expiration(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                        .build()
-        );
-
-        return newTokens;
-    }
-
-    /**
-     * 비밀번호 일치 여부 확인
-     */
-    private boolean isSamePassword(String answerPassword, String comparePassword) {
-        if (!StringUtils.hasText(comparePassword)) {
-            return false;
-        }
-        if (!passwordEncoder.matches(comparePassword, answerPassword)) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * 회원가입 요청의 유효성을 검사
-     */
-    private Boolean checkSignupInfo(SignUpReqDto userInfoReqDto) {
-        return StringUtils.hasText(userInfoReqDto.getEmail())
-                && StringUtils.hasText(userInfoReqDto.getPassword());
-    }
 
     /**
      * 인증 후 Access 및 Refresh Token 발급
