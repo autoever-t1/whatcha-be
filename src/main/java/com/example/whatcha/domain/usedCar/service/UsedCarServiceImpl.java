@@ -57,6 +57,7 @@ public class UsedCarServiceImpl implements UsedCarService {
                                                   Boolean hasHUD, Boolean hasSurroundViewMonitor, Boolean hasRearMonitor,
                                                   Boolean hasBlindSpotWarning, Boolean hasLaneDepartureWarning,
                                                   Boolean hasSmartCruiseControl, Boolean hasFrontParkingWarning,
+                                                  Integer priceMin, Integer priceMax,
                                                   int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
 
@@ -71,7 +72,8 @@ public class UsedCarServiceImpl implements UsedCarService {
                 yearMin, yearMax, fuelTypes, hasNavigation, hasHiPass, hasHeatedSteeringWheel,
                 hasHeatedSeats, hasVentilatedSeats, hasPowerSeats, hasLeatherSeats, hasPowerTrunk,
                 hasSunroof, hasHUD, hasSurroundViewMonitor, hasRearMonitor, hasBlindSpotWarning,
-                hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning);
+                hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning,
+                priceMin, priceMax);
 
         return usedCarRepository.findAll(spec, pageable)
                 .map(UsedCarListResDto::entityToDto);

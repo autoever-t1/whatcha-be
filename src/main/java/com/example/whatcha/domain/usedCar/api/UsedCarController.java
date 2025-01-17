@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -18,9 +20,14 @@ public class UsedCarController {
 
     private final UsedCarService usedCarService;
 
+    // URL 디코딩을 위한 메서드
+    private String decodeParam(String param) {
+        return URLDecoder.decode(param, StandardCharsets.UTF_8);
+    }
+
     // 1. 전체 중고차 리스트 조회 (페이지네이션)
     @GetMapping
-    public ResponseEntity<Page<UsedCarListResDto>> fidnAllUsedCar(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<Page<UsedCarListResDto>> findAllUsedCar(@RequestParam(defaultValue = "0") int page) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarService.findAllUsedCar(page));
     }
@@ -30,8 +37,11 @@ public class UsedCarController {
     public ResponseEntity<Page<UsedCarListResDto>> searchUsedCar(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page) {
+
+        //url 디코딩
+        String decodedKeyword = decodeParam(keyword);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(usedCarService.searchUsedCar(keyword, page));
+                .body(usedCarService.searchUsedCar(decodedKeyword, page));
     }
 
     // 3. 중고차 필터링 (여러 필터 조건, 페이지네이션)
@@ -61,7 +71,19 @@ public class UsedCarController {
             @RequestParam(required = false) Boolean hasLaneDepartureWarning,
             @RequestParam(required = false) Boolean hasSmartCruiseControl,
             @RequestParam(required = false) Boolean hasFrontParkingWarning,
+            @RequestParam(required = false) Integer priceMin,
+            @RequestParam(required = false) Integer priceMax,
             @RequestParam(defaultValue = "0") int page) {
+
+        if (modelTypes != null) {
+            modelTypes.replaceAll(this::decodeParam);
+        }
+        if (modelNames != null) {
+            modelNames.replaceAll(this::decodeParam);
+        }
+        if (fuelTypes != null) {
+            fuelTypes.replaceAll(this::decodeParam);
+        }
 
         if (colorIds != null && colorIds.isEmpty()) colorIds = null;
         if (modelTypes != null && modelTypes.isEmpty()) modelTypes = null;
@@ -72,12 +94,12 @@ public class UsedCarController {
                 mileageMin, mileageMax, yearMin, yearMax, fuelTypes,
                 hasNavigation, hasHiPass, hasHeatedSteeringWheel, hasHeatedSeats, hasVentilatedSeats, hasPowerSeats,
                 hasLeatherSeats, hasPowerTrunk, hasSunroof, hasHUD, hasSurroundViewMonitor, hasRearMonitor,
-                hasBlindSpotWarning, hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning, page);
+                hasBlindSpotWarning, hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning,
+                priceMin, priceMax, page);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarList);
     }
-
 
     // 4. 중고차 상세 조회
     @GetMapping("/detail/{usedCarId}")

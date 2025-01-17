@@ -23,5 +23,6 @@ public interface UsedCarService {
                                            Boolean hasHUD, Boolean hasSurroundViewMonitor, Boolean hasRearMonitor,
                                            Boolean hasBlindSpotWarning, Boolean hasLaneDepartureWarning,
                                            Boolean hasSmartCruiseControl, Boolean hasFrontParkingWarning,
+                                           Integer priceMin, Integer priceMax,
                                            int page);
 }
