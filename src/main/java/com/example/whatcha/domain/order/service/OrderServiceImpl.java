@@ -64,20 +64,18 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public DepositResDto payDeposit(String email, Long usedCarId, int fullPayment, int deposit, Long userCouponId) {
 
-        //해야할 일 -> 쿠폰아이디 받으면 쿠폰아이디로 쿠폰 객체 찾고 계산해서 가격 반환하기
-        //userCoupons 찾기
-        UserCoupons userCoupons = userCouponsRepository.findById(userCouponId).orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
+        // usedCar 찾기
+        UsedCar usedCar = usedCarRepository.findById(usedCarId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
 
-        //usedCar 찾기
-        UsedCar usedCar = usedCarRepository.findById(usedCarId).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
-
-        //usedCar status값 바꿔주기
+        // usedCar status값 바꿔주기
         UsedCar updatedUsedCar = usedCar.changeStatus("판매중");
         usedCarRepository.save(updatedUsedCar);
 
-        //해당 branch ownedCarCount -1 해주기
+        // 해당 branch ownedCarCount -1 해주기
         Long branchStoreId = usedCar.getBranchStore().getBranchStoreId();
-        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).orElseThrow(() -> new IllegalArgumentException("Invalid branchStoreId: " + branchStoreId));
+        BranchStore branchStore = branchStoreRepository.findById(branchStoreId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid branchStoreId: " + branchStoreId));
 
         BranchStore updatedBranchStore = BranchStore.builder()
                 .branchStoreId(branchStore.getBranchStoreId())
@@ -91,35 +89,44 @@ public class OrderServiceImpl implements OrderService {
 
         branchStoreRepository.save(updatedBranchStore);
 
-        //model 찾아서 판매 갯수 +1 해주기
+        // model 찾아서 판매 갯수 +1 해주기
         Long modelId = usedCar.getModel().getModelId();
-        Model model = modelRepository.findById(modelId).orElseThrow(() -> new IllegalArgumentException("Invalid modelId: " + modelId));
+        Model model = modelRepository.findById(modelId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid modelId: " + modelId));
 
         Model updatedModel = Model.builder()
                 .modelId(model.getModelId())
                 .modelName(model.getModelName())
                 .modelType(model.getModelType())
                 .factoryPrice(model.getFactoryPrice())
-                .orderCount(model.getOrderCount()+1)
+                .orderCount(model.getOrderCount() + 1)
                 .build();
 
         modelRepository.save(updatedModel);
 
-        //user 찾기
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
+        // user 찾기
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
 
-        //Order 저장
-        Order order = Order.builder()
-                .userCoupons(userCoupons)
+        // Order 저장
+        Order.OrderBuilder orderBuilder = Order.builder()
                 .usedCarId(usedCarId)
                 .userId(user.getUserId())
                 .fullPayment(fullPayment)
-                .deposit(deposit)
-                .build();
+                .deposit(deposit);
 
+        // userCoupons 처리
+        UserCoupons userCoupons = null;
+        if (userCouponId != null) {
+            userCoupons = userCouponsRepository.findById(userCouponId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
+            orderBuilder.userCoupons(userCoupons);
+        }
+
+        Order order = orderBuilder.build();
         orderRepository.save(order);
 
-        //orderprocess에서 depositPaid true로 바꾸고 나머지 다 false
+        // orderProcess 저장
         OrderProcess orderProcess = OrderProcess.builder()
                 .order(order)
                 .userCoupons(userCoupons)
@@ -132,9 +139,12 @@ public class OrderServiceImpl implements OrderService {
 
         orderProcessRepository.save(orderProcess);
 
-        //usercoupon에서 isActive false로 바꾸고 remaining amount계산해서 넘기기
-        userCouponsRepository.deleteByCouponCouponId(userCouponId);
+        // userCoupon 삭제
+        if (userCouponId != null) {
+            userCouponsRepository.deleteByCouponCouponId(userCouponId);
+        }
 
+        // DepositResDto 반환
         DepositResDto depositResDto = DepositResDto.builder()
                 .orderId(order.getOrderId())
                 .nickName(user.getName())
@@ -142,72 +152,41 @@ public class OrderServiceImpl implements OrderService {
                 .registrationDate(order.getCreatedAt())
                 .modelName(usedCar.getModelName())
                 .deposit(deposit)
-                .remainingAmount(fullPayment-deposit)
+                .remainingAmount(fullPayment - deposit)
                 .build();
+
         return depositResDto;
     }
 
+
     @Override
+    @Transactional
     public void fullPayment(Long orderId) {
         //orderId를 통해 OrderProcess를 조회
         OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
 
-        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
-        orderProcessResDto.setFullyPaid(true);
-
-        OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())
-                .userCoupons(orderProcess.getUserCoupons())
-                .depositPaid(orderProcessResDto.getDepositPaid())
-                .contractSigned(orderProcessResDto.getContractSigned())
-                .fullyPaid(orderProcessResDto.getFullyPaid())
-                .deliveryService(orderProcessResDto.getDeliveryService())
-                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
-                .build();
-        orderProcessRepository.save(result);
+        orderProcess.markAsFullyPaid();
     }
 
     @Override
+    @Transactional
     public void writeContract(Long orderId) {
         //orderId를 통해 OrderProcess를 조회
         OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
 
-        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
-        orderProcessResDto.setContractSigned(true);
-
-        OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())
-                .userCoupons(orderProcess.getUserCoupons())
-                .depositPaid(orderProcessResDto.getDepositPaid())
-                .contractSigned(orderProcessResDto.getContractSigned())
-                .fullyPaid(orderProcessResDto.getFullyPaid())
-                .deliveryService(orderProcessResDto.getDeliveryService())
-                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
-                .build();
-        orderProcessRepository.save(result);
+        orderProcess.signContract();
     }
 
     @Override
+    @Transactional
     public void deliveryService(Long orderId) {
         //orderId를 통해 OrderProcess를 조회
         OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
 
-        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
-        orderProcessResDto.setDeliveryService(true);
-
-        OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())
-                .userCoupons(orderProcess.getUserCoupons())
-                .depositPaid(orderProcessResDto.getDepositPaid())
-                .contractSigned(orderProcessResDto.getContractSigned())
-                .fullyPaid(orderProcessResDto.getFullyPaid())
-                .deliveryService(orderProcessResDto.getDeliveryService())
-                .deliveryCompleted(orderProcessResDto.getDeliveryCompleted())
-                .build();
-        orderProcessRepository.save(result);
+        orderProcess.enableDeliveryService();
     }
 
 }
