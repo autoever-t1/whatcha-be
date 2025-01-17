@@ -10,15 +10,19 @@ import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
+import com.example.whatcha.domain.user.dao.UserRepository;
+import com.example.whatcha.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -106,6 +110,53 @@ public class InterestServiceImpl implements InterestService {
     public void deleteAlertByUserAndModel(Long userId, Long modelId) {
         userCarAlertRepository.deleteByUserIdAndModel_ModelId(userId, modelId);
     }
+
+    @Override
+    public List<CarPreviewResponseDto> getRecommendedCarList(User user, int limit) {
+
+        // 최신순 정렬
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(0, limit, sort);
+
+        // 빈 리스트 생성
+        List<UsedCar> recommendCars = new ArrayList<>();
+
+        // 중고차 추천 데이터 조회
+        if (user.getPreferenceModel1() != null || user.getPreferenceModel2() != null || user.getPreferenceModel3() != null) {
+            recommendCars = usedCarRepository.findByPriceBetweenAndModelNameContainingOrModelNameContainingOrModelNameContaining(
+                    user.getBudgetMin(),
+                    user.getBudgetMax(),
+                    user.getPreferenceModel1(),
+                    user.getPreferenceModel2(),
+                    user.getPreferenceModel3(),
+                    pageable);
+        }
+
+        if (recommendCars.size() < limit) {
+            int remaining = limit - recommendCars.size();
+            List<Long> excludeIds = recommendCars.stream()
+                    .map(UsedCar::getUsedCarId)
+                    .collect(Collectors.toList());
+
+            List<UsedCar> additionalCars = usedCarRepository.findByIdNotIn(
+                    excludeIds.isEmpty() ? List.of(-1L) : excludeIds,
+                    PageRequest.of(0, remaining, sort));
+
+            recommendCars.addAll(additionalCars);
+        }
+
+        return recommendCars.stream()
+                .map(item -> CarPreviewResponseDto.builder()
+                        .usedCarId(item.getUsedCarId())
+                        .thumbnailUrl(item.getMainImage())
+                        .modelName(item.getModelName())
+                        .registrationDate(item.getRegistrationDate())
+                        .mileage(item.getMileage())
+                        .vhclRegNo(item.getVhclRegNo())
+                        .price(item.getPrice())
+                        .build()).toList();
+    }
+
 
     @Override
     public UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate) {
