@@ -12,8 +12,18 @@ import java.util.List;
 
 public interface UsedCarRepository extends JpaRepository<UsedCar, Long>, JpaSpecificationExecutor<UsedCar> {
 
-    List<UsedCar> findByPriceBetweenAndModelNameContainingOrModelNameContainingOrModelNameContaining(
-            Integer minPrice, Integer maxPrice, String modelName1, String modelName2, String modelName3, Pageable pageable);
+    @Query("SELECT u FROM UsedCar u WHERE " +
+            "(u.price BETWEEN :minPrice AND :maxPrice) AND " +
+            "(u.modelName LIKE %:modelName1% OR u.modelName LIKE %:modelName2% OR u.modelName LIKE %:modelName3%)")
+    List<UsedCar> findRecommendedCars(
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("modelName1") String modelName1,
+            @Param("modelName2") String modelName2,
+            @Param("modelName3") String modelName3,
+            Pageable pageable
+    );
+
 
     @Query("""
     SELECT uc FROM UsedCar uc
