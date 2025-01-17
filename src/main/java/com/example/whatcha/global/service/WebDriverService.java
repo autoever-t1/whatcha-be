@@ -410,7 +410,6 @@ public class WebDriverService {
         }
 
         return Option.builder()
-                .usedCar(usedCar)
                 .hasNavigation(hasNavigation)
                 .hasHiPass(hasHiPass)
                 .hasHeatedSteeringWheel(hasHeatedSteeringWheel)
