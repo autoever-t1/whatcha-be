@@ -17,6 +17,7 @@ import com.example.whatcha.global.exception.NotFoundException;
 import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
+import com.example.whatcha.global.security.domain.CustomUserDetails;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto) {
-        log.info("[카카오 로그인] 카카오 로그인 정보: accessToken = {}, refreshToken = {}, appToken = {}, email = {}, name = {}",
+        log.info("[카카오 로그인] 카카오 로그인 정보: appToken = {}, email = {}, name = {}",
                 loginReqDto.getAppToken(), loginReqDto.getEmail(), loginReqDto.getName());
 
         // 이미 가입된 사용자 확인
@@ -65,13 +66,17 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
 
+        // CustomUserDetails 객체 생성
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
         // JWT 토큰 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+                customUserDetails,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
         );
 
+        // JWT 토큰 생성
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
         // Refresh Token을 Redis에 저장
@@ -99,13 +104,17 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
+        // CustomUserDetails 객체 생성
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
         // JWT 토큰 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+                customUserDetails,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
         );
 
+        // JWT 토큰 생성 (accessToken, refreshToken)
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
         // Refresh Token을 Redis에 저장
