@@ -5,7 +5,6 @@ import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertRequestDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.interest.service.InterestService;
-import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -49,13 +48,7 @@ public class InterestController {
         }
     }
 
-    @GetMapping("/recommended-cars")
-    public ResponseEntity<List<CarPreviewResponseDto>> getRecommendedCarList(@RequestParam(defaultValue = "5") int limit) {
-        User user = securityUtils.getLoginUser();
-        List<CarPreviewResponseDto> recommendCars = interestService.getRecommendedCarList(user, limit);
-
-        return ResponseEntity.ok(recommendCars);
-    }
+//    @GetMapping("/recommended-cars")
 
     @PostMapping("/alert-cars/{modelId}")
     public ResponseEntity<?> addUserCarAlert(@PathVariable Long modelId, @RequestBody UserCarAlertRequestDto alertRequestDto) {

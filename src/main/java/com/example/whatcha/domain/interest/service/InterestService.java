@@ -3,7 +3,6 @@ package com.example.whatcha.domain.interest.service;
 import com.example.whatcha.domain.interest.domain.UserCarAlert;
 import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
-import com.example.whatcha.domain.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,8 +18,6 @@ public interface InterestService {
     List<UserCarAlertResponseDto> getAlertedModelList(Long userId);
 
     void deleteAlertByUserAndModel(Long userId, Long modelId);
-
-    List<CarPreviewResponseDto> getRecommendedCarList(User user, int limit);
 
     UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate);
 
