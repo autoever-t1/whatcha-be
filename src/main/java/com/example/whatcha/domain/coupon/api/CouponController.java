@@ -4,7 +4,9 @@ import com.example.whatcha.domain.coupon.domain.Coupon;
 import com.example.whatcha.domain.coupon.dto.response.CouponResDto;
 import com.example.whatcha.domain.coupon.service.CouponService;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
+import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/coupon")
 @RequiredArgsConstructor
@@ -25,11 +28,13 @@ public class CouponController {
     public ResponseEntity<CouponResDto> addCoupon(@RequestBody String couponCode) {
         try{
             //userId로 대체하기
-            CouponResDto response = couponService.addCoupon(couponCode,1L);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(response);
+            //accessToken에서 userEmail뽑아내기
+            //String email = SecurityUtils.getLoginUserEmail();
+            CouponResDto response = couponService.addCoupon(couponCode,"booby1@naver.com");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CouponResDto("사용자 coupon등록 500에러 발생"));
         }
     }
