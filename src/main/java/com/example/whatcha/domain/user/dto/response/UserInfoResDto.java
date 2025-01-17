@@ -19,9 +19,9 @@ public class UserInfoResDto {
     private Integer budgetMax;
     private Boolean isNotificationAgreed;
     private Boolean isLocationAgreed;
-    private Long preferenceModelId1;
-    private Long preferenceModelId2;
-    private Long preferenceModelId3;
+    private String preferenceModelName1;
+    private String preferenceModelName2;
+    private String preferenceModelName3;
     private Double latitude;
     private Double longitude;
 
@@ -38,9 +38,9 @@ public class UserInfoResDto {
                 .budgetMax(user.getBudgetMax())
                 .isNotificationAgreed(user.getIsNotificationAgreed())
                 .isLocationAgreed(user.getIsLocationAgreed())
-                .preferenceModelId1(user.getPreferenceModelId1())
-                .preferenceModelId2(user.getPreferenceModelId2())
-                .preferenceModelId3(user.getPreferenceModelId3())
+                .preferenceModelName1(user.getPreferenceModelName1())
+                .preferenceModelName2(user.getPreferenceModelName2())
+                .preferenceModelName3(user.getPreferenceModelName3())
                 .latitude(user.getLatitude())
                 .longitude(user.getLongitude())
                 .build();
