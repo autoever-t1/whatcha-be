@@ -60,7 +60,7 @@ public class UsedCarDetailResDto {
     private final Boolean hasSmartCruiseControl;
     private final Boolean hasFrontParkingWarning;
 
-    public static UsedCarDetailResDto entityToResDto(UsedCar usedCar, Option option) {
+    public static UsedCarDetailResDto entityToResDto(UsedCar usedCar) {
         return UsedCarDetailResDto.builder()
                 // 차량 정보
                 .modelName(usedCar.getModelName())
@@ -96,22 +96,22 @@ public class UsedCarDetailResDto {
                 .phone(usedCar.getBranchStore().getPhone())
 
                 // 옵션 정보
-                .hasNavigation(option.getHasNavigation())
-                .hasHiPass(option.getHasHiPass())
-                .hasHeatedSteeringWheel(option.getHasHeatedSteeringWheel())
-                .hasHeatedSeats(option.getHasHeatedSeats())
-                .hasVentilatedSeats(option.getHasVentilatedSeats())
-                .hasPowerSeats(option.getHasPowerSeats())
-                .hasLeatherSeats(option.getHasLeatherSeats())
-                .hasPowerTrunk(option.getHasPowerTrunk())
-                .hasSunroof(option.getHasSunroof())
-                .hasHUD(option.getHasHUD())
-                .hasSurroundViewMonitor(option.getHasSurroundViewMonitor())
-                .hasRearMonitor(option.getHasRearMonitor())
-                .hasBlindSpotWarning(option.getHasBlindSpotWarning())
-                .hasLaneDepartureWarning(option.getHasLaneDepartureWarning())
-                .hasSmartCruiseControl(option.getHasSmartCruiseControl())
-                .hasFrontParkingWarning(option.getHasFrontParkingWarning())
+                .hasNavigation(usedCar.getOption().getHasNavigation())
+                .hasHiPass(usedCar.getOption().getHasHiPass())
+                .hasHeatedSteeringWheel(usedCar.getOption().getHasHeatedSteeringWheel())
+                .hasHeatedSeats(usedCar.getOption().getHasHeatedSeats())
+                .hasVentilatedSeats(usedCar.getOption().getHasVentilatedSeats())
+                .hasPowerSeats(usedCar.getOption().getHasPowerSeats())
+                .hasLeatherSeats(usedCar.getOption().getHasLeatherSeats())
+                .hasPowerTrunk(usedCar.getOption().getHasPowerTrunk())
+                .hasSunroof(usedCar.getOption().getHasSunroof())
+                .hasHUD(usedCar.getOption().getHasHUD())
+                .hasSurroundViewMonitor(usedCar.getOption().getHasSurroundViewMonitor())
+                .hasRearMonitor(usedCar.getOption().getHasRearMonitor())
+                .hasBlindSpotWarning(usedCar.getOption().getHasBlindSpotWarning())
+                .hasLaneDepartureWarning(usedCar.getOption().getHasLaneDepartureWarning())
+                .hasSmartCruiseControl(usedCar.getOption().getHasSmartCruiseControl())
+                .hasFrontParkingWarning(usedCar.getOption().getHasFrontParkingWarning())
                 .build();
     }
 }

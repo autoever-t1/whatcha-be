@@ -9,6 +9,7 @@ import lombok.Data;
 public class UsedCarListResDto {
 
     // 차량 정보
+    private final Long usedCarId;
     private final String modelName;
     private final Integer price;
     private final String registrationDate; // 최초등록
@@ -21,8 +22,9 @@ public class UsedCarListResDto {
     private final String mainImage;
     private final Integer likeCount; // 찜 수
 
-    public static UsedCarListResDto entityToDto(UsedCar usedCar, Integer likeCount) {
+    public static UsedCarListResDto entityToDto(UsedCar usedCar) {
         return UsedCarListResDto.builder()
+                .usedCarId(usedCar.getUsedCarId())
                 .modelName(usedCar.getModelName())
                 .price(usedCar.getPrice())
                 .registrationDate(usedCar.getRegistrationDate())
@@ -33,7 +35,7 @@ public class UsedCarListResDto {
                 .status(usedCar.getStatus())
                 .goodsNo(usedCar.getGoodsNo())
                 .mainImage(usedCar.getMainImage())
-                .likeCount(likeCount)
+                .likeCount(usedCar.getLikeCount())
                 .build();
     }
 }

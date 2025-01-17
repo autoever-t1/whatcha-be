@@ -26,11 +26,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Collections;
 
 import static com.example.whatcha.domain.user.constant.UserExceptionMessage.*;
 
@@ -66,22 +64,15 @@ public class UserServiceImpl implements UserService {
         log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
 
         // JWT 토큰 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
-        );
+        TokenInfo tokenInfo = setFirstAuthentication(user.getEmail(), null);
 
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        logoutAccessTokenRepository.deleteById(user.getEmail());
 
         // Refresh Token을 Redis에 저장
-        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
 
         // 응답 객체 반환
-        return AuthenticatedResDto.builder()
-                .userInfo(UserInfoResDto.entityToResDto(user))
-                .tokenInfo(tokenInfo)
-                .build();
+        return AuthenticatedResDto.entityToResDto(tokenInfo, user);
     }
 
 
@@ -100,32 +91,15 @@ public class UserServiceImpl implements UserService {
         log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
         // JWT 토큰 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
-        );
+        TokenInfo tokenInfo = setFirstAuthentication(user.getEmail(), null);
 
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        logoutAccessTokenRepository.deleteById(user.getEmail());
 
         // Refresh Token을 Redis에 저장
-        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
 
         // 응답 객체 반환
-        return AuthenticatedResDto.builder()
-                .userInfo(UserInfoResDto.entityToResDto(user))
-                .tokenInfo(tokenInfo)
-                .build();
-    }
-
-    private void saveRefreshTokenInRedis(String email, String refreshToken) {
-        RefreshToken token = RefreshToken.builder()
-                .email(email)
-                .refreshToken(refreshToken)
-                .expiration(REFRESH_TOKEN_EXPIRED_IN)
-                .build();
-
-        refreshTokenRedisRepository.save(token);
+        return AuthenticatedResDto.entityToResDto(tokenInfo, user);
     }
 
     /**
