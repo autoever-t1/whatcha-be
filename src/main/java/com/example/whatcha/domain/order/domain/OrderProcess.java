@@ -41,4 +41,16 @@ public class OrderProcess {
 
     @Builder.Default
     private Boolean deliveryCompleted = false;
+
+    public void markAsFullyPaid() {
+        this.fullyPaid = true;
+    }
+
+    public void signContract() {
+        this.contractSigned = true;
+    }
+
+    public void enableDeliveryService() {
+        this.deliveryService = true;
+    }
 }
