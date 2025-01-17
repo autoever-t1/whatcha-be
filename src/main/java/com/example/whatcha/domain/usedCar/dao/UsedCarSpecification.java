@@ -34,7 +34,9 @@ public class UsedCarSpecification {
             Boolean hasBlindSpotWarning,
             Boolean hasLaneDepartureWarning,
             Boolean hasSmartCruiseControl,
-            Boolean hasFrontParkingWarning) {
+            Boolean hasFrontParkingWarning,
+            Integer priceMin,
+            Integer priceMax) {
 
         return (Root<UsedCar> root, javax.persistence.criteria.CriteriaQuery<?> query, javax.persistence.criteria.CriteriaBuilder criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -73,6 +75,14 @@ public class UsedCarSpecification {
             // 연료 타입 필터링
             if (fuelTypes != null && !fuelTypes.isEmpty()) {
                 predicates.add(root.get("fuelType").in(fuelTypes));
+            }
+
+            // 가격 필터링
+            if (priceMin != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), priceMin));
+            }
+            if (priceMax != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceMax));
             }
 
             // 옵션 필터링
