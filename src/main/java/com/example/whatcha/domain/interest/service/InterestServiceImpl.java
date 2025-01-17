@@ -123,7 +123,7 @@ public class InterestServiceImpl implements InterestService {
 
         // 중고차 추천 데이터 조회
         if (user.getPreferenceModel1() != null || user.getPreferenceModel2() != null || user.getPreferenceModel3() != null) {
-            recommendCars = usedCarRepository.findByPriceBetweenAndModelNameContainingOrModelNameContainingOrModelNameContaining(
+            recommendCars = usedCarRepository.findRecommendedCars(
                     user.getBudgetMin(),
                     user.getBudgetMax(),
                     user.getPreferenceModel1(),
