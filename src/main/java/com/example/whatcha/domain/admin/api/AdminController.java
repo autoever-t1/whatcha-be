@@ -118,6 +118,12 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    //관리자 대시보드 최근 거래내역
+    @GetMapping("/tradeHistory")
+    public ResponseEntity<?> getAllTradeHistory() {
+        List<TradeHistoryResDto> response = adminService.getTradeHistory();
+        return ResponseEntity.ok(response);
+    }
 
 
 

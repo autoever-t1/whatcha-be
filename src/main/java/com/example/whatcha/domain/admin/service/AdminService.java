@@ -43,4 +43,7 @@ public interface AdminService {
 
     //관리자 대시보드
     DashBoardResDto getDashBoard();
+
+    //관리자 거래내역 보기
+    List<TradeHistoryResDto> getTradeHistory();
 }
