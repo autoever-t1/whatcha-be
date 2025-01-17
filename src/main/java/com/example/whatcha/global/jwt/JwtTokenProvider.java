@@ -53,19 +53,22 @@ public class JwtTokenProvider {
      * Access Token과 Refresh Token을 생성하여 TokenInfo 객체로 반환합니다.
      */
     public TokenInfo generateToken(Authentication authentication) {
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        String username = customUserDetails.getUsername();
+        UserType userType = customUserDetails.getUserType();
+
+        // 권한 설정
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        UserType userType = customUserDetails.getUserType();
-
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRED_IN);
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(username)
                 .claim("auth", authorities)
                 .claim("userType", userType.name())
                 .setExpiration(accessTokenExpiresIn)
@@ -75,7 +78,7 @@ public class JwtTokenProvider {
         // Refresh Token 생성
         Date refreshTokenExpiresIn = new Date(now + REFRESH_TOKEN_EXPIRED_IN);
         String refreshToken = Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(username)
                 .claim("auth", authorities)
                 .claim("userType", userType.name())
                 .setExpiration(refreshTokenExpiresIn)

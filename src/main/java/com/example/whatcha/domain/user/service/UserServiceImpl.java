@@ -17,6 +17,7 @@ import com.example.whatcha.global.exception.NotFoundException;
 import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
+import com.example.whatcha.global.security.domain.CustomUserDetails;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Collections;
 
 import static com.example.whatcha.domain.user.constant.UserExceptionMessage.*;
 
@@ -63,16 +66,27 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
 
-        // JWT 토큰 생성
-        TokenInfo tokenInfo = setFirstAuthentication(user.getEmail(), null);
+        // CustomUserDetails 객체 생성
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
-        logoutAccessTokenRepository.deleteById(user.getEmail());
+        // JWT 토큰 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                customUserDetails,
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
+        );
+
+        // JWT 토큰 생성
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
         // Refresh Token을 Redis에 저장
-        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
+        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
 
         // 응답 객체 반환
-        return AuthenticatedResDto.entityToResDto(tokenInfo, user);
+        return AuthenticatedResDto.builder()
+                .userInfo(UserInfoResDto.entityToResDto(user))
+                .tokenInfo(tokenInfo)
+                .build();
     }
 
 
@@ -90,16 +104,37 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
-        // JWT 토큰 생성
-        TokenInfo tokenInfo = setFirstAuthentication(user.getEmail(), null);
+        // CustomUserDetails 객체 생성
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
-        logoutAccessTokenRepository.deleteById(user.getEmail());
+        // JWT 토큰 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                customUserDetails,
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
+        );
+
+        // JWT 토큰 생성 (accessToken, refreshToken)
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
         // Refresh Token을 Redis에 저장
-        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
+        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
 
         // 응답 객체 반환
-        return AuthenticatedResDto.entityToResDto(tokenInfo, user);
+        return AuthenticatedResDto.builder()
+                .userInfo(UserInfoResDto.entityToResDto(user))
+                .tokenInfo(tokenInfo)
+                .build();
+    }
+
+    private void saveRefreshTokenInRedis(String email, String refreshToken) {
+        RefreshToken token = RefreshToken.builder()
+                .email(email)
+                .refreshToken(refreshToken)
+                .expiration(REFRESH_TOKEN_EXPIRED_IN)
+                .build();
+
+        refreshTokenRedisRepository.save(token);
     }
 
     /**
