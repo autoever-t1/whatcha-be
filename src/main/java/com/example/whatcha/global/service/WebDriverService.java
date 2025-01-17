@@ -47,10 +47,10 @@ public class WebDriverService {
     //"/Users/user/leejoohee/Desktop/chromedriver-mac-x64/chromedriver"
     @PostConstruct
     public void init() {
-        System.setProperty("webdriver.chrome.driver", "/Users/leejoohee/Desktop/chromedriver-mac-x64/chromedriver");
-//        System.setProperty("webdriver.chrome.driver", "/chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver", "/Users/leejoohee/Desktop/chromedriver-mac-x64/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "/chromedriver.exe");
 //        System.setProperty("webdriver.chrome.driver", "C:\\Users\\User\\Desktop\\chromedriver-win64\\chromedriver.exe");
-      
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-popup-blocking"); // 팝업 안 띄움
         options.addArguments("--disable-gpu"); // GPU 비활성화
@@ -80,7 +80,7 @@ public class WebDriverService {
             // 전체 데이터 갯수 추출
             WebElement totalCountElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("em#saleVehicleTotalCount")));
 //            int totalCount = Integer.parseInt(totalCountElement.getText().replaceAll("[^0-9]", ""));
-            int totalCount = 650;
+            int totalCount = 40;
             log.info("총 차량 갯수: " + totalCount);
 
             // 데이터가 목표 갯수에 도달할 때까지 "더보기" 버튼 반복 클릭
@@ -125,7 +125,7 @@ public class WebDriverService {
                 getCarDetails(carNumber);
 
                 // 새로운 페이지로 이동하기 전에 잠깐 대기 시간을 주어 페이지가 완전히 로드되도록 처리
-                Thread.sleep(2000);
+                Thread.sleep(4000);
             }
 
         } catch (Exception e) {
@@ -159,7 +159,7 @@ public class WebDriverService {
         Integer factoryPrice = 0;
 
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(70));
             driver.get(vehicleUrl);
 
             // 차량 정보 크롤링
@@ -184,6 +184,13 @@ public class WebDriverService {
             branchStore.incrementOwnedCarCount();
 
             branchStoreRepository.save(branchStore);
+
+            //옵션 크롤링
+            WebElement optionsBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("ol.option_01")));
+            List<WebElement> optionList = optionsBox.findElements(By.tagName("li"));
+
+            Option option = parseOptions(optionList);
+            optionRepository.save(option);
 
             WebElement detailBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("ol.base_01")));
             List<WebElement> detailList = detailBox.findElements(By.tagName("li"));
@@ -281,6 +288,7 @@ public class WebDriverService {
                     .transmission(transmission)
                     .goodsNo(goodsNo)
                     .mainImage(mainImage)
+                    .option(option)
                     .build();
 
             usedCarRepository.save(usedCar);
@@ -305,11 +313,6 @@ public class WebDriverService {
             usedCarImageRepository.saveAll(images);
 
 
-            WebElement optionsBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("ol.option_01")));
-            List<WebElement> optionList = optionsBox.findElements(By.tagName("li"));
-
-            Option option = parseOptions(optionList, usedCar);
-            optionRepository.save(option);
 
         } catch (NoSuchElementException e) {
             log.error("페이지 찾을 수 없음: " + vehicleUrl, e);
@@ -332,7 +335,7 @@ public class WebDriverService {
         return null; // 유효한 도시 이름이 없을 경우 null 반환
     }
 
-    private Option parseOptions(List<WebElement> optionList, UsedCar usedCar) {
+    private Option parseOptions(List<WebElement> optionList) {
         boolean hasNavigation = true;
         boolean hasHiPass = true;
         boolean hasHeatedSteeringWheel = true;

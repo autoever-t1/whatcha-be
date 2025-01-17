@@ -15,6 +15,9 @@ public class Option extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long optionId;
 
+    @OneToOne(mappedBy = "option", fetch = FetchType.LAZY)
+    private UsedCar usedCar;
+
     @Column(nullable = false)
     private Boolean hasNavigation;
 

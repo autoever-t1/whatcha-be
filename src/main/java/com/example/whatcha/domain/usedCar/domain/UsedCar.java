@@ -31,7 +31,7 @@ public class UsedCar extends BaseEntity {
     private BranchStore branchStore;
 
     @OneToOne
-    @JoinColumn(name = "option_id", nullable = false)
+    @JoinColumn(name = "option_id",  nullable = true)
     private Option option;
 
     @Column(nullable = false)

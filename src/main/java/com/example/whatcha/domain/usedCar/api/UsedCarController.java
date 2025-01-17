@@ -74,7 +74,7 @@ public class UsedCarController {
     }
 
     // 4. 중고차 상세 조회
-    @GetMapping("/{usedCarId}")
+    @GetMapping("/detail/{usedCarId}")
     public ResponseEntity<UsedCarDetailResDto> findOneUsedCar(@PathVariable Long usedCarId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarService.findOneUsedCar(usedCarId));

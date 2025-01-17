@@ -71,6 +71,9 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/admin/coupon",
             "/api/chat",
             "/api/crawling",
+            "/api/used-car",
+            "/api/used-car/search",
+            "/api/used-car/filter"
     };
 
     /**

@@ -65,12 +65,14 @@ public class User extends BaseEntity {
 
     private String appToken;
 
+    private String gender;
+
     @Builder
     public User(String email, String name, String address, UserType userType,
                 Integer ageGroup, String phone, Integer budgetMin, Integer budgetMax,
                 Boolean isNotificationAgreed, Boolean isLocationAgreed,
                 Long preferenceModelId1, Long preferenceModelId2, Long preferenceModelId3,
-                Double latitude, Double longitude, String appToken) {
+                Double latitude, Double longitude, String appToken, String gender) {
         this.email = email;
         this.name = name;
         this.address = address;
@@ -87,6 +89,7 @@ public class User extends BaseEntity {
         this.latitude = latitude;
         this.longitude = longitude;
         this.appToken = appToken;
+        this.gender = gender;
     }
 
     public void updateBudget(BudgetReqDto budgetReqDto) {
