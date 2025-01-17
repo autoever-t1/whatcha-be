@@ -34,4 +34,8 @@ public class UserCoupons extends BaseEntity {
     private LocalDate expiryDate;
 
     private Boolean isActive;
+
+    public void deactivate() {
+        this.isActive = false;
+    }
 }
