@@ -1,6 +1,7 @@
 package com.example.whatcha.domain.usedCar.service;
 
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
+import com.example.whatcha.domain.usedCar.dao.UsedCarSpecification;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
@@ -21,6 +22,7 @@ import static com.example.whatcha.domain.usedCar.constant.UsedCarExceptionMessag
 public class UsedCarServiceImpl implements UsedCarService {
 
     private final UsedCarRepository usedCarRepository;
+    private final UsedCarSpecification usedCarSpecification;
 
     @Override
     public UsedCarDetailResDto findOneUsedCar(Long usedCarId) {
@@ -58,12 +60,20 @@ public class UsedCarServiceImpl implements UsedCarService {
                                                   int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
 
-        // 필터 조건에 맞는 차량 반환
-        return usedCarRepository.filterUsedCars(colorIds, modelTypes, modelNames, mileageMin, mileageMax,
-                        yearMin, yearMax, fuelTypes, hasNavigation, hasHiPass, hasHeatedSteeringWheel,
-                        hasHeatedSeats, hasVentilatedSeats, hasPowerSeats, hasLeatherSeats, hasPowerTrunk,
-                        hasSunroof, hasHUD, hasSurroundViewMonitor, hasRearMonitor, hasBlindSpotWarning,
-                        hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning, pageable)
+        log.info("============================================================");
+        log.info("Model Types: {}", modelTypes);
+        log.info("Fuel Types: {}", fuelTypes);
+        log.info("============================================================");
+
+        // Specification을 통해 동적으로 쿼리 생성
+        var spec = usedCarSpecification.buildSpecification(
+                colorIds, modelTypes, modelNames, mileageMin, mileageMax,
+                yearMin, yearMax, fuelTypes, hasNavigation, hasHiPass, hasHeatedSteeringWheel,
+                hasHeatedSeats, hasVentilatedSeats, hasPowerSeats, hasLeatherSeats, hasPowerTrunk,
+                hasSunroof, hasHUD, hasSurroundViewMonitor, hasRearMonitor, hasBlindSpotWarning,
+                hasLaneDepartureWarning, hasSmartCruiseControl, hasFrontParkingWarning);
+
+        return usedCarRepository.findAll(spec, pageable)
                 .map(UsedCarListResDto::entityToDto);
     }
 }
