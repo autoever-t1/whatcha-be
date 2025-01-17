@@ -72,6 +72,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/chat",
             "/api/crawling",
             "/api/admin/user",
+            "/api/admin/branch-store",
+            "/api/admin/dashBoard",
     };
 
     /**
