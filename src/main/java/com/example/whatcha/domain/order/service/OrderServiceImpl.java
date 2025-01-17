@@ -1,5 +1,7 @@
 package com.example.whatcha.domain.order.service;
 
+import com.example.whatcha.domain.branchStore.dao.BranchStoreRepository;
+import com.example.whatcha.domain.branchStore.domain.BranchStore;
 import com.example.whatcha.domain.coupon.dao.CouponRepository;
 import com.example.whatcha.domain.coupon.dao.UserCouponsRepository;
 import com.example.whatcha.domain.coupon.domain.UserCoupons;
@@ -10,13 +12,17 @@ import com.example.whatcha.domain.order.domain.OrderProcess;
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
+import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,8 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
     private final UsedCarRepository usedCarRepository;
+    private final BranchStoreRepository branchStoreRepository;
+    private final ModelRepository modelRepository;
 
     @Override
     public OrderProcessResDto getOrderProcess(Long orderId) {
@@ -53,14 +61,49 @@ public class OrderServiceImpl implements OrderService {
 
     //이때 order, orderprocess save해야함
     @Override
+    @Transactional
     public DepositResDto payDeposit(String email, Long usedCarId, int fullPayment, int deposit, Long userCouponId) {
 
         //해야할 일 -> 쿠폰아이디 받으면 쿠폰아이디로 쿠폰 객체 찾고 계산해서 가격 반환하기
         //userCoupons 찾기
         UserCoupons userCoupons = userCouponsRepository.findById(userCouponId).orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
 
-        //userdCar 찾기
+        //usedCar 찾기
         UsedCar usedCar = usedCarRepository.findById(usedCarId).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
+
+        //usedCar status값 바꿔주기
+        UsedCar updatedUsedCar = usedCar.changeStatus("판매중");
+        usedCarRepository.save(updatedUsedCar);
+
+        //해당 branch ownedCarCount -1 해주기
+        Long branchStoreId = usedCar.getBranchStore().getBranchStoreId();
+        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).orElseThrow(() -> new IllegalArgumentException("Invalid branchStoreId: " + branchStoreId));
+
+        BranchStore updatedBranchStore = BranchStore.builder()
+                .branchStoreId(branchStore.getBranchStoreId())
+                .branchStoreName(branchStore.getBranchStoreName())
+                .location(branchStore.getLocation())
+                .latitude(branchStore.getLatitude())
+                .longitude(branchStore.getLongitude())
+                .ownedCarCount(branchStore.getOwnedCarCount() - 1)
+                .phone(branchStore.getPhone())
+                .build();
+
+        branchStoreRepository.save(updatedBranchStore);
+
+        //model 찾아서 판매 갯수 +1 해주기
+        Long modelId = usedCar.getModel().getModelId();
+        Model model = modelRepository.findById(modelId).orElseThrow(() -> new IllegalArgumentException("Invalid modelId: " + modelId));
+
+        Model updatedModel = Model.builder()
+                .modelId(model.getModelId())
+                .modelName(model.getModelName())
+                .modelType(model.getModelType())
+                .factoryPrice(model.getFactoryPrice())
+                .orderCount(model.getOrderCount()+1)
+                .build();
+
+        modelRepository.save(updatedModel);
 
         //user 찾기
         User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
@@ -90,9 +133,10 @@ public class OrderServiceImpl implements OrderService {
         orderProcessRepository.save(orderProcess);
 
         //usercoupon에서 isActive false로 바꾸고 remaining amount계산해서 넘기기
-
+        userCouponsRepository.deleteByCouponCouponId(userCouponId);
 
         DepositResDto depositResDto = DepositResDto.builder()
+                .orderId(order.getOrderId())
                 .nickName(user.getName())
                 .vhclRegNo(usedCar.getVhclRegNo())
                 .registrationDate(order.getCreatedAt())

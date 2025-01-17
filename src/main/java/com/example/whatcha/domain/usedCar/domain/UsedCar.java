@@ -99,4 +99,30 @@ public class UsedCar extends BaseEntity {
         this.goodsNo = goodsNo;
         this.mainImage = mainImage;
     }
+
+    public UsedCar changeStatus(String newStatus) {
+        return UsedCar.builder()
+                .usedCarId(this.usedCarId)
+                .model(this.model)
+                .color(this.color)
+                .branchStore(this.branchStore)
+                .registrationDate(this.registrationDate)
+                .vhclRegNo(this.vhclRegNo)
+                .modelName(this.modelName)
+                .modelType(this.modelType)
+                .fuelType(this.fuelType)
+                .mileage(this.mileage)
+                .exteriorColor(this.exteriorColor)
+                .interiorColor(this.interiorColor)
+                .price(this.price)
+                .status(newStatus) // status 값 바꿔주기
+                .years(this.years)
+                .engineCapacity(this.engineCapacity)
+                .passengerCapacity(this.passengerCapacity)
+                .driveType(this.driveType)
+                .transmission(this.transmission)
+                .goodsNo(this.goodsNo)
+                .mainImage(this.mainImage)
+                .build();
+    }
 }

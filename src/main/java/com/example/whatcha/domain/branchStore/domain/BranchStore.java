@@ -1,9 +1,6 @@
 package com.example.whatcha.domain.branchStore.domain;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -11,6 +8,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Entity
+@Builder
 public class BranchStore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
