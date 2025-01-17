@@ -9,7 +9,7 @@ import java.util.List;
 public interface CouponService {
 
     //사용자 쿠폰 등록하기
-    CouponResDto addCoupon(String couponCode, Long userId);
+    CouponResDto addCoupon(String couponCode, String email);
 
     //사용자 쿠폰 리스트 확인하기
     Page<CouponResDto> getAllCoupons(Long userId, Pageable pageable);

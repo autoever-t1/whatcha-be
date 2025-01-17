@@ -1,8 +1,10 @@
 package com.example.whatcha.domain.admin.api;
 
+import com.example.whatcha.domain.admin.dto.response.AgeStatisticsDto;
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
+import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
@@ -36,7 +40,6 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-
     //관리자 쿠폰 등록하기
     @PostMapping("/coupon")
     public ResponseEntity<Void> registerAdminCoupon(@RequestBody CouponReqDto couponReqDto) {
@@ -59,22 +62,28 @@ public class AdminController {
     }
 
     //관리자 전체 회원보기
-//    @GetMapping("/user")
-//    public ResponseEntity<?> getAllUser() {
-//        adminService.getAllUser();
-//        return null;
-//    }
+    @GetMapping("/user")
+    public ResponseEntity<?> getAllUser() {
+        List<UserInfoResDto> response =  adminService.getAllUser();
+        return ResponseEntity.ok(response);
+    }
 
     //관리자 회원 상세보기
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserById(@PathVariable Long userId) {
-        return null;
+        UserInfoResDto response = adminService.getUserById(userId);
+        return ResponseEntity.ok(response);
     }
 
     //관리자 회원 통계보기 (나이대별)
     @GetMapping("/user/statistics/age")
     public ResponseEntity<?> getUserStatisticsByAge() {
-        return null;
+        List<AgeStatisticsDto> statistics = adminService.getAgeStatistics();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
     }
 
 

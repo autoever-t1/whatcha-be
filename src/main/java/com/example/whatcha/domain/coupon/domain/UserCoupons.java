@@ -31,9 +31,6 @@ public class UserCoupons extends BaseEntity {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-//    @OneToOne(mappedBy = "userCoupons")
-//    private OrderProcess orderProcess;
-
     private LocalDate expiryDate;
 
     private Boolean isActive;

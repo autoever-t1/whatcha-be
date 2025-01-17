@@ -45,4 +45,9 @@ public class SecurityUtils {
             throw new RuntimeException();
         }
     }
+
+    public Long getLoginUserId() {
+        User user = getLoginUser();
+        return user.getUserId();
+    }
 }
