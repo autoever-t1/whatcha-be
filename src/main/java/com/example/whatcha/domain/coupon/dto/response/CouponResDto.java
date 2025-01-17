@@ -10,9 +10,13 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 public class CouponResDto {
+    private Long userCouponId;
+
     private String couponName;
 
     private int discountPercentage;
+
+    private int discountAmount;
 
     private int maxDiscountAmount;
 

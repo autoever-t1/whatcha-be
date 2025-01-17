@@ -5,6 +5,7 @@ import com.example.whatcha.domain.order.dto.response.DepositResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
 import com.example.whatcha.domain.order.service.OrderService;
+import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,11 +47,12 @@ public class OrderController {
         }
     }
 
-    //계약금 납부하기
+    //계약금 납부하기 -> order 1단계
     @PostMapping("/deposit")
     public ResponseEntity<?> payDeposit(@RequestBody DepositReqDto request) {
         try{
-            DepositResDto response = orderService.payDeposit(request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
+            String email = SecurityUtils.getLoginUserEmail();
+            DepositResDto response = orderService.payDeposit(email, request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계약금 납부하기 오류");
@@ -69,12 +71,6 @@ public class OrderController {
     public ResponseEntity<?> writeContract(@PathVariable("orderId") Long orderId) {
         orderService.writeContract(orderId);
         return ResponseEntity.ok().build();
-    }
-
-    //할부 완납 선택
-    @PutMapping("/{orderId}/payment-type")
-    public ResponseEntity<?> setPaymentType(@PathVariable("orderId") Long orderId) {
-        return null;
     }
 
     //탁송 방법 선택

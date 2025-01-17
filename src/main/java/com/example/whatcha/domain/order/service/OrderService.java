@@ -13,7 +13,7 @@ public interface OrderService {
     OrderResDto getOrder(Long orderId);
 
     //계약금 납부하기
-    DepositResDto payDeposit(Long usedCarId, int fullPayment, int deposit, Long userCouponId);
+    DepositResDto payDeposit(String email, Long usedCarId, int fullPayment, int deposit, Long userCouponId);
 
     //잔금 결제하기
     void fullPayment(Long orderId);
