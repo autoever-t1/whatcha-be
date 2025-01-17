@@ -68,6 +68,10 @@ public class OrderServiceImpl implements OrderService {
         UsedCar usedCar = usedCarRepository.findById(usedCarId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
 
+        if (!"구매 가능".equals(usedCar.getStatus())) {
+            throw new IllegalArgumentException("해당 매물은 계약 진행중인 매물입니다!");
+        }
+
         // usedCar status값 바꿔주기
         UsedCar updatedUsedCar = usedCar.changeStatus("판매중");
         usedCarRepository.save(updatedUsedCar);
@@ -121,6 +125,7 @@ public class OrderServiceImpl implements OrderService {
             userCoupons = userCouponsRepository.findById(userCouponId)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
             orderBuilder.userCoupons(userCoupons);
+            userCoupons.deactivate();
         }
 
         Order order = orderBuilder.build();
@@ -138,11 +143,6 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderProcessRepository.save(orderProcess);
-
-        // userCoupon 삭제
-        if (userCouponId != null) {
-            userCouponsRepository.deleteByCouponCouponId(userCouponId);
-        }
 
         // DepositResDto 반환
         DepositResDto depositResDto = DepositResDto.builder()
