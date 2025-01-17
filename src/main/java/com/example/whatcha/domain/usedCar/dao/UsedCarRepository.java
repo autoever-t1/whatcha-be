@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface UsedCarRepository extends JpaRepository<UsedCar, Long> {
     List<UsedCar> findByPriceBetweenAndModelNameContainingOrModelNameContainingOrModelNameContaining(
             Integer minPrice, Integer maxPrice, String modelName1, String modelName2, String modelName3, Pageable pageable);
@@ -19,4 +21,6 @@ public interface UsedCarRepository extends JpaRepository<UsedCar, Long> {
     List<UsedCar> findByIdNotIn(
             @Param("excludeIds") List<Long> excludeIds,
             Pageable pageable);
+
+    List<UsedCar> findByBranchStore_BranchStoreId(Long branchStoreId);
 }

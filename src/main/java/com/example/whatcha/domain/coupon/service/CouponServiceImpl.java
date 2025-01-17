@@ -72,6 +72,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new CouponNotFoundException("UserCoupons not found: " + coupon.getCouponId()));
 
         return CouponResDto.builder()
+                .userCouponId(response.getUserCouponId())
                 .couponName(coupon.getCouponName())
                 .discountPercentage(coupon.getDiscountPercentage())
                 .maxDiscountAmount(coupon.getMaxDiscountAmount())
@@ -82,7 +83,10 @@ public class CouponServiceImpl implements CouponService {
 
 
     @Override
-    public Page<CouponResDto> getAllCoupons(Long userId, Pageable pageable) {
+    public Page<CouponResDto> getAllCoupons(String email, Pageable pageable) {
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found: " + email));
+        Long userId = user.getUserId();
         // userId로 UserCoupons 페이지 조회
         Page<UserCoupons> userCouponsPage = userCouponsRepository.findAllByUserUserId(userId, pageable);
 
@@ -92,8 +96,10 @@ public class CouponServiceImpl implements CouponService {
                     .orElseThrow(() -> new CouponNotFoundException("Coupon not found for id: " + userCoupon.getCoupon().getCouponId()));
 
             return CouponResDto.builder()
+                    .userCouponId(userCoupon.getCoupon().getCouponId())
                     .couponName(coupon.getCouponName())
                     .discountPercentage(coupon.getDiscountPercentage())
+                    .discountAmount(coupon.getDiscountAmount())
                     .maxDiscountAmount(coupon.getMaxDiscountAmount())
                     .expiryDate(userCoupon.getExpiryDate())
                     .build();
