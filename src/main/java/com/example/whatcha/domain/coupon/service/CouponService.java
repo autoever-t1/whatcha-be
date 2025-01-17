@@ -12,6 +12,6 @@ public interface CouponService {
     CouponResDto addCoupon(String couponCode, String email);
 
     //사용자 쿠폰 리스트 확인하기
-    Page<CouponResDto> getAllCoupons(Long userId, Pageable pageable);
+    Page<CouponResDto> getAllCoupons(String email, Pageable pageable);
 
 }

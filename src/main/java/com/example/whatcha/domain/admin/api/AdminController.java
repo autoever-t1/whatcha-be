@@ -1,6 +1,6 @@
 package com.example.whatcha.domain.admin.api;
 
-import com.example.whatcha.domain.admin.dto.response.AgeStatisticsDto;
+import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
@@ -75,7 +75,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    //관리자 회원 통계보기 (나이대별)
+    //관리자 회원 나이대별 통계보기
     @GetMapping("/user/statistics/age")
     public ResponseEntity<?> getUserStatisticsByAge() {
         List<AgeStatisticsDto> statistics = adminService.getAgeStatistics();
@@ -86,6 +86,37 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    //관리자 회원 성별 통계보기
+    @GetMapping("/user/statistics/gender")
+    public ResponseEntity<?> getUserStatisticsByGender() {
+        List<GenderStatisticsDto> statistics = adminService.getGenderStatistics();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 지점 정보 보기
+    @GetMapping("/branch-store")
+    public ResponseEntity<?> getAllBranchStore() {
+        List<BranchStoreResDto> response =  adminService.getAllBranchStore();
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 지점 상세보기
+    @GetMapping("/branch-store/{branchStoreId}")
+    public ResponseEntity<?> getBranchStoreById(@PathVariable Long branchStoreId) {
+        List<UsedCarByBranchResDto> response = adminService.getBranchStoreById(branchStoreId);
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 대시보드 유저수, 판매차량, 판매금액, 차량재고
+    @GetMapping("/dashBoard")
+    public ResponseEntity<?> getAllDashBoard() {
+        DashBoardResDto response = adminService.getDashBoard();
+        return ResponseEntity.ok(response);
+    }
 
 
 
