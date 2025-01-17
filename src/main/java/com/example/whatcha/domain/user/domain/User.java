@@ -50,14 +50,14 @@ public class User extends BaseEntity {
     @Column(name = "is_location_agreed")
     private Boolean isLocationAgreed;
 
-    @Column(name = "preference_model_id_1")
-    private Long preferenceModelId1;
+    @Column(name = "preference_model_name_1")
+    private String preferenceModelName1;
 
-    @Column(name = "preference_model_id_2")
-    private Long preferenceModelId2;
+    @Column(name = "preference_model_name_2")
+    private String preferenceModelName2;
 
-    @Column(name = "preference_model_id_3")
-    private Long preferenceModelId3;
+    @Column(name = "preference_model_name_3")
+    private String preferenceModelName3;
 
     private Double latitude;
 
@@ -69,7 +69,7 @@ public class User extends BaseEntity {
     public User(String email, String name, String address, UserType userType,
                 Integer ageGroup, String phone, Integer budgetMin, Integer budgetMax,
                 Boolean isNotificationAgreed, Boolean isLocationAgreed,
-                Long preferenceModelId1, Long preferenceModelId2, Long preferenceModelId3,
+                String preferenceModelName1, String preferenceModelName2, String preferenceModelName3,
                 Double latitude, Double longitude, String appToken) {
         this.email = email;
         this.name = name;
@@ -81,9 +81,9 @@ public class User extends BaseEntity {
         this.budgetMax = budgetMax;
         this.isNotificationAgreed = isNotificationAgreed;
         this.isLocationAgreed = isLocationAgreed;
-        this.preferenceModelId1 = preferenceModelId1;
-        this.preferenceModelId2 = preferenceModelId2;
-        this.preferenceModelId3 = preferenceModelId3;
+        this.preferenceModelName1 = preferenceModelName1;
+        this.preferenceModelName2 = preferenceModelName2;
+        this.preferenceModelName3 = preferenceModelName3;
         this.latitude = latitude;
         this.longitude = longitude;
         this.appToken = appToken;
@@ -100,8 +100,8 @@ public class User extends BaseEntity {
     }
 
     public void updatePreferenceModel(PreferenceModelReqDto preferenceModelReqDto) {
-        this.preferenceModelId1 = preferenceModelReqDto.getPreferenceModelId1();
-        this.preferenceModelId2 = preferenceModelReqDto.getPreferenceModelId2();
-        this.preferenceModelId3 = preferenceModelReqDto.getPreferenceModelId3();
+        this.preferenceModelName1 = preferenceModelReqDto.getPreferenceModelName1();
+        this.preferenceModelName2 = preferenceModelReqDto.getPreferenceModelName2();
+        this.preferenceModelName3 = preferenceModelReqDto.getPreferenceModelName3();
     }
 }
