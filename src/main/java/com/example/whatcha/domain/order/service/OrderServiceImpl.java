@@ -10,6 +10,8 @@ import com.example.whatcha.domain.order.domain.OrderProcess;
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
+import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.global.security.util.SecurityUtils;
@@ -25,6 +27,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserCouponsRepository userCouponsRepository;
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
+    private final UsedCarRepository usedCarRepository;
 
     @Override
     public OrderProcessResDto getOrderProcess(Long orderId) {
@@ -50,35 +53,33 @@ public class OrderServiceImpl implements OrderService {
 
     //이때 order, orderprocess save해야함
     @Override
-    public DepositResDto payDeposit(Long usedCarId, int fullPayment, int deposit, Long userCouponId) {
+    public DepositResDto payDeposit(String email, Long usedCarId, int fullPayment, int deposit, Long userCouponId) {
 
         //해야할 일 -> 쿠폰아이디 받으면 쿠폰아이디로 쿠폰 객체 찾고 계산해서 가격 반환하기
+        //userCoupons 찾기
+        UserCoupons userCoupons = userCouponsRepository.findById(userCouponId).orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
 
-//        UserCoupons userCoupons = userCouponsRepository.findById(userCouponId)
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
+        //userdCar 찾기
+        UsedCar usedCar = usedCarRepository.findById(usedCarId).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
 
+        //user 찾기
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
 
-
-        //진짜 유저 데이터 가져와서 넣기 & 진짜 usedCar데이터
-        //usedCarId로 usedCar객체 찾기
-
-        String userEmail = SecurityUtils.getLoginUserEmail();
-        User user = userRepository.findByEmail(userEmail).orElseThrow();
-
-
+        //Order 저장
         Order order = Order.builder()
-                //.userCoupons(userCoupons)
-                .usedCarId(1L)
-                .userId(1L)
+                .userCoupons(userCoupons)
+                .usedCarId(usedCarId)
+                .userId(user.getUserId())
                 .fullPayment(fullPayment)
                 .deposit(deposit)
                 .build();
+
         orderRepository.save(order);
 
         //orderprocess에서 depositPaid true로 바꾸고 나머지 다 false
         OrderProcess orderProcess = OrderProcess.builder()
                 .order(order)
-                //.userCoupons(userCoupons)
+                .userCoupons(userCoupons)
                 .depositPaid(true)
                 .contractSigned(false)
                 .deliveryService(false)
@@ -90,13 +91,14 @@ public class OrderServiceImpl implements OrderService {
 
         //usercoupon에서 isActive false로 바꾸고 remaining amount계산해서 넘기기
 
+
         DepositResDto depositResDto = DepositResDto.builder()
-                .nickName("user객체에서 nickname찾아서 넘기기")
-                .vhclRegNo("차량번호 usedCar에서 가져오기")
+                .nickName(user.getName())
+                .vhclRegNo(usedCar.getVhclRegNo())
                 .registrationDate(order.getCreatedAt())
-                .modelName("차량모델 usedCar에서 가져오기")
+                .modelName(usedCar.getModelName())
                 .deposit(deposit)
-                .remainingAmount(123456789)
+                .remainingAmount(fullPayment-deposit)
                 .build();
         return depositResDto;
     }
@@ -111,8 +113,8 @@ public class OrderServiceImpl implements OrderService {
         orderProcessResDto.setFullyPaid(true);
 
         OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())  // 기존 order 설정
-                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .order(orderProcess.getOrder())
+                .userCoupons(orderProcess.getUserCoupons())
                 .depositPaid(orderProcessResDto.getDepositPaid())
                 .contractSigned(orderProcessResDto.getContractSigned())
                 .fullyPaid(orderProcessResDto.getFullyPaid())
@@ -132,8 +134,8 @@ public class OrderServiceImpl implements OrderService {
         orderProcessResDto.setContractSigned(true);
 
         OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())  // 기존 order 설정
-                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .order(orderProcess.getOrder())
+                .userCoupons(orderProcess.getUserCoupons())
                 .depositPaid(orderProcessResDto.getDepositPaid())
                 .contractSigned(orderProcessResDto.getContractSigned())
                 .fullyPaid(orderProcessResDto.getFullyPaid())
@@ -153,8 +155,8 @@ public class OrderServiceImpl implements OrderService {
         orderProcessResDto.setDeliveryService(true);
 
         OrderProcess result = OrderProcess.builder()
-                .order(orderProcess.getOrder())  // 기존 order 설정
-                .userCoupons(orderProcess.getUserCoupons())  // 기존 userCoupons 설정
+                .order(orderProcess.getOrder())
+                .userCoupons(orderProcess.getUserCoupons())
                 .depositPaid(orderProcessResDto.getDepositPaid())
                 .contractSigned(orderProcessResDto.getContractSigned())
                 .fullyPaid(orderProcessResDto.getFullyPaid())

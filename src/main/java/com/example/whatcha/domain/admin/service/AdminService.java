@@ -1,7 +1,9 @@
 package com.example.whatcha.domain.admin.service;
 
+import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
+import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +24,23 @@ public interface AdminService {
     void deleteCoupon(Long couponId);
 
     //관리자 전체 회원보기
-
+    List<UserInfoResDto> getAllUser();
 
     //관리자 회원 상세보기
+    UserInfoResDto getUserById(Long userId);
+
+    //관리자 연령대 통계보기
+    List<AgeStatisticsDto> getAgeStatistics();
+
+    //관리자 성별대 통계보기
+    List<GenderStatisticsDto> getGenderStatistics();
+
+    //관리자 지점 보기
+    List<BranchStoreResDto> getAllBranchStore();
+
+    //관리자 지점 별 매물보기
+    List<UsedCarByBranchResDto> getBranchStoreById(Long branchStoreId);
+
+    //관리자 대시보드
+    DashBoardResDto getDashBoard();
 }

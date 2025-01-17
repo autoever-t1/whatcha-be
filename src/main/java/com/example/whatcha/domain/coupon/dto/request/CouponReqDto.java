@@ -9,8 +9,6 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class CouponReqDto {
-    private String couponCode;
-
     private String couponName;
 
     private int discountPercentage;
@@ -21,7 +19,6 @@ public class CouponReqDto {
 
     public Coupon toEntity() {
         return Coupon.builder()
-                .couponCode(this.couponCode)
                 .couponName(this.couponName)
                 .discountPercentage(this.discountPercentage)
                 .discountAmount(this.discountAmount)

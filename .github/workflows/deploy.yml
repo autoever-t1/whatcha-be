@@ -23,7 +23,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # application-secret.properties 파일 만들기
+      # application-secret.yml 파일 만들기
       - name: Make application-secret.yml
         run: |
           cd ./src/main
@@ -32,8 +32,17 @@ jobs:
           echo "${{ secrets.SECRET_PROPERTIES }}" > application-secret.yml
         shell: bash
 
+      # worryboxFirebaseKey.json 파일 만들기
+      - name: Create worryboxFirebaseKey.json
+        run: |
+          cd ./src/main/resources
+          echo "${{ secrets.FIREBASE_KEY }}" > worryboxFirebaseKey.json
+        shell: bash
+
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: |
+          ./gradlew build --warning-mode all
+          ./gradlew clean build
 
       - name: Docker build
         run: |

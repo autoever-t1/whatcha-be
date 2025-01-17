@@ -73,7 +73,10 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/crawling",
             "/api/used-car",
             "/api/used-car/search",
-            "/api/used-car/filter"
+            "/api/used-car/filter",
+            "/api/admin/user",
+            "/api/admin/branch-store",
+            "/api/admin/dashBoard"
     };
 
     /**

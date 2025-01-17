@@ -1,3 +1,9 @@
+firebase:
+  config:
+    path: ${secret.firebase.config-path}
+  fcm:
+    api-url: ${secret.firebase.fcm-api-url}
+
 management:
   health:
     diskspace:
@@ -8,6 +14,7 @@ management:
       enabled: true
   servlet:
     context-path: /manage
+
 spa:
   default-file: /dist/index.html5
 
@@ -21,14 +28,15 @@ spring:
     name: whatcha
 
   datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
-#    username: whatcha
-#    password: ${secret.mysql.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/whatcha
     username: root
     password: 1234
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://whatchadb.cswkhwlfziph.ap-northeast-2.rds.amazonaws.com:3306/whatcha
+#    username: whatcha
+#    password: ${secret.mysql.password}
 
   jpa:
     hibernate:
@@ -38,8 +46,10 @@ spring:
     show-sql: true
 
   redis:
+#    host: localhost
     host: 172.31.37.49
     port: 6379
+#    password: ""
     password: ${secret.redis.password}
 
   mail:
@@ -50,7 +60,6 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
-
 
 logging:
   level:
@@ -78,14 +87,16 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+
 build:
   date: "@build.date@"
 
 jwt:
-  refresh-expired-in: '1296000000'  # Refresh Token ?? ?? (15?)
-  access-expired-in: '3600000' # Access Token ?? ?? (1??)
+  refresh-expired-in: '1296000000'  # Refresh Token 만료 시간 (15일)
+  access-expired-in: '3600000'      # Access Token 만료 시간 (1시간)
   cookieName: refreshToken
   secret: ${secret-jwt.secret}
+
 springfox:
   documentation:
     swagger:

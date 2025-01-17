@@ -5,6 +5,7 @@ import com.example.whatcha.domain.interest.dto.CarPreviewResponseDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertRequestDto;
 import com.example.whatcha.domain.interest.dto.UserCarAlertResponseDto;
 import com.example.whatcha.domain.interest.service.InterestService;
+import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,7 @@ import java.util.List;
 public class InterestController {
 
     private final InterestService interestService;
-    private Long userId = 200L;
+    private final SecurityUtils securityUtils;
 
     @GetMapping("/liked-cars")
     public ResponseEntity<Page<CarPreviewResponseDto>> getLikedCarList(
@@ -31,6 +32,7 @@ public class InterestController {
                     sort = "updatedAt",
                     direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        Long userId = securityUtils.getLoginUserId();
         Page<CarPreviewResponseDto> items = interestService.getLikedCarList(userId, pageable);
         return ResponseEntity.ok(items);
     }
@@ -38,6 +40,7 @@ public class InterestController {
     @PostMapping("/liked-cars/{usedCarId}")
     public ResponseEntity<?> toggleLike(@PathVariable Long usedCarId) {
         try {
+            Long userId = securityUtils.getLoginUserId();
             boolean isLiked = interestService.toggleLike(userId, usedCarId);
             return ResponseEntity.ok(isLiked);
         } catch (EntityNotFoundException ex) {
@@ -50,6 +53,7 @@ public class InterestController {
     @PostMapping("/alert-cars/{modelId}")
     public ResponseEntity<?> addUserCarAlert(@PathVariable Long modelId, @RequestBody UserCarAlertRequestDto alertRequestDto) {
         try {
+            Long userId = securityUtils.getLoginUserId();
             UserCarAlert userCarAlert = interestService.addUserCarAlert(userId, modelId, alertRequestDto.getAlertExpirationDate());
             return ResponseEntity.status(HttpStatus.CREATED).body(userCarAlert);
         } catch (EntityNotFoundException ex) {
@@ -61,12 +65,14 @@ public class InterestController {
 
     @GetMapping("/alert-cars")
     public ResponseEntity<List<UserCarAlertResponseDto>> getAlertedModelList() {
+        Long userId = securityUtils.getLoginUserId();
         List<UserCarAlertResponseDto> alertedModelList = interestService.getAlertedModelList(userId);
         return ResponseEntity.ok(alertedModelList);
     }
 
     @DeleteMapping("/alert-cars/{modelId}")
     public ResponseEntity<Void> deleteStockNotification(@PathVariable Long modelId) {
+        Long userId = securityUtils.getLoginUserId();
         interestService.deleteAlertByUserAndModel(userId, modelId);
         return ResponseEntity.noContent().build();
     }
@@ -77,5 +83,4 @@ public class InterestController {
 
         return ResponseEntity.ok(mostLikedCars);
     }
-
 }
