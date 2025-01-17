@@ -53,11 +53,8 @@ public class OrderServiceImpl implements OrderService {
     public DepositResDto payDeposit(Long usedCarId, int fullPayment, int deposit, Long userCouponId) {
 
         //해야할 일 -> 쿠폰아이디 받으면 쿠폰아이디로 쿠폰 객체 찾고 계산해서 가격 반환하기
-
-//        UserCoupons userCoupons = userCouponsRepository.findById(userCouponId)
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
-
-
+        UserCoupons userCoupons = userCouponsRepository.findById(userCouponId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid userCouponId: " + userCouponId));
 
         //진짜 유저 데이터 가져와서 넣기 & 진짜 usedCar데이터
         //usedCarId로 usedCar객체 찾기
@@ -65,20 +62,22 @@ public class OrderServiceImpl implements OrderService {
         String userEmail = SecurityUtils.getLoginUserEmail();
         User user = userRepository.findByEmail(userEmail).orElseThrow();
 
+        Long userId = user.getUserId();
 
         Order order = Order.builder()
-                //.userCoupons(userCoupons)
+                .userCoupons(userCoupons)
                 .usedCarId(1L)
                 .userId(1L)
                 .fullPayment(fullPayment)
                 .deposit(deposit)
                 .build();
+
         orderRepository.save(order);
 
         //orderprocess에서 depositPaid true로 바꾸고 나머지 다 false
         OrderProcess orderProcess = OrderProcess.builder()
                 .order(order)
-                //.userCoupons(userCoupons)
+                .userCoupons(userCoupons)
                 .depositPaid(true)
                 .contractSigned(false)
                 .deliveryService(false)

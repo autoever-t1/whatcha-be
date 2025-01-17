@@ -43,8 +43,8 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.9'
 
     // Testing
-//    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     //kakao
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'

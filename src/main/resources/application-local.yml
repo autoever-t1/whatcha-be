@@ -1,8 +1,8 @@
 firebase:
   config:
-    path: classpath:worryboxFirebaseKey.json
+    path: ${secret.firebase.config-path}
   fcm:
-    api-url: https://fcm.googleapis.com/v1/projects/carapp-b1777/messages:send
+    api-url: ${secret.firebase.fcm-api-url}
 
 management:
   health:
