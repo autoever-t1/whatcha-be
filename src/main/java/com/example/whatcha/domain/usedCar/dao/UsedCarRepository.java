@@ -65,4 +65,5 @@ public interface UsedCarRepository extends JpaRepository<UsedCar, Long> {
                                  @Param("hasSmartCruiseControl") Boolean hasSmartCruiseControl,
                                  @Param("hasFrontParkingWarning") Boolean hasFrontParkingWarning,
                                  Pageable pageable);
+
 }

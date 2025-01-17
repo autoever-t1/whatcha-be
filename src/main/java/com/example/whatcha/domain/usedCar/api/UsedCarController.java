@@ -37,14 +37,14 @@ public class UsedCarController {
     // 3. 중고차 필터링 (여러 필터 조건, 페이지네이션)
     @GetMapping("/filter")
     public ResponseEntity<Page<UsedCarListResDto>> filterUsedCar(
-            @RequestParam List<Long> colorIds,
-            @RequestParam List<String> modelTypes,
-            @RequestParam List<String> modelNames,
+            @RequestParam(required = false) List<Long> colorIds,
+            @RequestParam(required = false) List<String> modelTypes,
+            @RequestParam(required = false) List<String> modelNames,
             @RequestParam(required = false) Integer mileageMin,
             @RequestParam(required = false) Integer mileageMax,
             @RequestParam(required = false) Integer yearMin,
             @RequestParam(required = false) Integer yearMax,
-            @RequestParam List<String> fuelTypes,
+            @RequestParam(required = false) List<String> fuelTypes,
             @RequestParam(required = false) Boolean hasNavigation,
             @RequestParam(required = false) Boolean hasHiPass,
             @RequestParam(required = false) Boolean hasHeatedSteeringWheel,
@@ -63,6 +63,11 @@ public class UsedCarController {
             @RequestParam(required = false) Boolean hasFrontParkingWarning,
             @RequestParam(defaultValue = "0") int page) {
 
+        if (colorIds != null && colorIds.isEmpty()) colorIds = null;
+        if (modelTypes != null && modelTypes.isEmpty()) modelTypes = null;
+        if (modelNames != null && modelNames.isEmpty()) modelNames = null;
+        if (fuelTypes != null && fuelTypes.isEmpty()) fuelTypes = null;
+
         Page<UsedCarListResDto> usedCarList = usedCarService.filterUsedCars(colorIds, modelTypes, modelNames,
                 mileageMin, mileageMax, yearMin, yearMax, fuelTypes,
                 hasNavigation, hasHiPass, hasHeatedSteeringWheel, hasHeatedSeats, hasVentilatedSeats, hasPowerSeats,
@@ -72,6 +77,7 @@ public class UsedCarController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarList);
     }
+
 
     // 4. 중고차 상세 조회
     @GetMapping("/detail/{usedCarId}")
