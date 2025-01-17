@@ -22,13 +22,17 @@ public class UsedCar extends BaseEntity {
     @JoinColumn(name = "model_id", nullable = false)
     private Model model;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "color_id", nullable = false)
     private Color color;
 
     @ManyToOne
     @JoinColumn(name = "branch_store_id", nullable = false)
     private BranchStore branchStore;
+
+    @OneToOne
+    @JoinColumn(name = "option_id",  nullable = true)
+    private Option option;
 
     @Column(nullable = false)
     private String modelName;
@@ -71,12 +75,15 @@ public class UsedCar extends BaseEntity {
 
     private String mainImage;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer likeCount;
+
     @Builder
     public UsedCar(Long usedCarId, Model model, Color color, BranchStore branchStore, String registrationDate,
                    String vhclRegNo, String modelName, String modelType, String fuelType, String mileage,
                    String exteriorColor, String interiorColor, Integer price, String status, String years,
                    Double engineCapacity, Integer passengerCapacity, String driveType, String transmission,
-                   String goodsNo, String mainImage) {
+                   String goodsNo, String mainImage, Integer likeCount, Option option) {  // option 필드 추가
         this.usedCarId = usedCarId;
         this.model = model;
         this.color = color;
@@ -98,5 +105,11 @@ public class UsedCar extends BaseEntity {
         this.transmission = transmission;
         this.goodsNo = goodsNo;
         this.mainImage = mainImage;
+        this.likeCount = (likeCount != null) ? likeCount : 0;
+        this.option = option;
+    }
+
+    public void updateLikeCount() {
+        this.likeCount += 1;
     }
 }

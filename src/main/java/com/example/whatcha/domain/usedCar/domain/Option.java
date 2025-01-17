@@ -15,8 +15,7 @@ public class Option extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long optionId;
 
-    @OneToOne
-    @JoinColumn(name = "used_car_id", nullable = false)
+    @OneToOne(mappedBy = "option", fetch = FetchType.LAZY)
     private UsedCar usedCar;
 
     @Column(nullable = false)
@@ -68,11 +67,10 @@ public class Option extends BaseEntity {
     private Boolean hasFrontParkingWarning;
 
     @Builder
-    public Option(UsedCar usedCar, boolean hasNavigation, boolean hasHiPass, boolean hasHeatedSteeringWheel,
+    public Option(boolean hasNavigation, boolean hasHiPass, boolean hasHeatedSteeringWheel,
                                       boolean hasHeatedSeats, boolean hasVentilatedSeats, boolean hasPowerSeats, boolean hasLeatherSeats,
                                       boolean hasPowerTrunk, boolean hasSunroof, boolean hasHUD, boolean hasSurroundViewMonitor,
                                       boolean hasRearMonitor, boolean hasBlindSpotWarning, boolean hasLaneDepartureWarning, boolean hasSmartCruiseControl, boolean hasFrontParkingWarning) {
-        this.usedCar = usedCar;
         this.hasNavigation = hasNavigation;
         this.hasHiPass = hasHiPass;
         this.hasHeatedSteeringWheel = hasHeatedSteeringWheel;
