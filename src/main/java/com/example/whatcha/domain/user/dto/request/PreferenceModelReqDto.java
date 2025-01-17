@@ -8,13 +8,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 public class PreferenceModelReqDto {
-    private Long preferenceModelId1;
-    private Long preferenceModelId2;
-    private Long preferenceModelId3;
+    private String preferenceModel1;
+    private String preferenceModel2;
+    private String preferenceModel3;
 
-    public PreferenceModelReqDto(Long preferenceModelId1, Long preferenceModelId2, Long preferenceModelId3) {
-        this.preferenceModelId1 = preferenceModelId1;
-        this.preferenceModelId2 = preferenceModelId2;
-        this.preferenceModelId3 = preferenceModelId3;
+    public PreferenceModelReqDto(String preferenceModel1, String preferenceModel2, String preferenceModel3) {
+        this.preferenceModel1 = preferenceModel1;
+        this.preferenceModel2 = preferenceModel2;
+        this.preferenceModel3 = preferenceModel3;
     }
 }

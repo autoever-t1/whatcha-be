@@ -50,14 +50,14 @@ public class User extends BaseEntity {
     @Column(name = "is_location_agreed")
     private Boolean isLocationAgreed;
 
-    @Column(name = "preference_model_id_1")
-    private Long preferenceModelId1;
+    @Column(name = "preference_model_1")
+    private String preferenceModel1;
 
-    @Column(name = "preference_model_id_2")
-    private Long preferenceModelId2;
+    @Column(name = "preference_model_2")
+    private String preferenceModel2;
 
-    @Column(name = "preference_model_id_3")
-    private Long preferenceModelId3;
+    @Column(name = "preference_model_3")
+    private String preferenceModel3;
 
     private Double latitude;
 
@@ -65,12 +65,14 @@ public class User extends BaseEntity {
 
     private String appToken;
 
+    private String gender;
+
     @Builder
     public User(String email, String name, String address, UserType userType,
                 Integer ageGroup, String phone, Integer budgetMin, Integer budgetMax,
                 Boolean isNotificationAgreed, Boolean isLocationAgreed,
-                Long preferenceModelId1, Long preferenceModelId2, Long preferenceModelId3,
-                Double latitude, Double longitude, String appToken) {
+                String preferenceModel1, String preferenceModel2, String preferenceModel3,
+                Double latitude, Double longitude, String appToken, String gender) {
         this.email = email;
         this.name = name;
         this.address = address;
@@ -81,12 +83,13 @@ public class User extends BaseEntity {
         this.budgetMax = budgetMax;
         this.isNotificationAgreed = isNotificationAgreed;
         this.isLocationAgreed = isLocationAgreed;
-        this.preferenceModelId1 = preferenceModelId1;
-        this.preferenceModelId2 = preferenceModelId2;
-        this.preferenceModelId3 = preferenceModelId3;
+        this.preferenceModel1 = preferenceModel1;
+        this.preferenceModel2 = preferenceModel2;
+        this.preferenceModel3 = preferenceModel3;
         this.latitude = latitude;
         this.longitude = longitude;
         this.appToken = appToken;
+        this.gender = gender;
     }
 
     public void updateBudget(BudgetReqDto budgetReqDto) {
@@ -100,8 +103,8 @@ public class User extends BaseEntity {
     }
 
     public void updatePreferenceModel(PreferenceModelReqDto preferenceModelReqDto) {
-        this.preferenceModelId1 = preferenceModelReqDto.getPreferenceModelId1();
-        this.preferenceModelId2 = preferenceModelReqDto.getPreferenceModelId2();
-        this.preferenceModelId3 = preferenceModelReqDto.getPreferenceModelId3();
+        this.preferenceModel1 = preferenceModelReqDto.getPreferenceModel1();
+        this.preferenceModel2 = preferenceModelReqDto.getPreferenceModel2();
+        this.preferenceModel3 = preferenceModelReqDto.getPreferenceModel3();
     }
 }
