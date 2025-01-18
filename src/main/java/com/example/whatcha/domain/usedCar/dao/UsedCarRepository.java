@@ -34,6 +34,14 @@ public interface UsedCarRepository extends JpaRepository<UsedCar, Long>, JpaSpec
             @Param("excludeIds") List<Long> excludeIds,
             Pageable pageable);
 
+    @Query(value = "SELECT u FROM UsedCar u " +
+            "WHERE u NOT IN (SELECT lc.usedCar FROM LikedCar lc WHERE lc.isLiked = true GROUP BY lc.usedCar) " +
+            "ORDER BY FUNCTION('RAND')")
+    List<UsedCar> findAdditionalCarsRandom(Pageable pageable);
+
+    @Query("SELECT u FROM UsedCar u WHERE u.modelName LIKE %:keyword% OR u.vhclRegNo LIKE %:keyword%")
+    Page<UsedCar> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
     List<UsedCar> findByBranchStore_BranchStoreId(Long branchStoreId);
 
     Page<UsedCar> findByModelNameContainingIgnoreCaseOrVhclRegNoContainingIgnoreCase(String modelName, String vhclRegNo, Pageable pageable);
