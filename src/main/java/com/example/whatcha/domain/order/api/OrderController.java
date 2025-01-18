@@ -59,21 +59,21 @@ public class OrderController {
         }
     }
 
-    //잔금 결제하기
+    //잔금 결제하기 -> order 2단계
     @PostMapping("/{orderId}/fullPayment")
     public ResponseEntity<?> fullPayment(@PathVariable("orderId") Long orderId) {
         orderService.fullPayment(orderId);
         return ResponseEntity.ok().build();
     }
 
-    //계약서 작성하기
+    //계약서 작성하기 -> order 3단계
     @PostMapping("/{orderId}/writeContract")
     public ResponseEntity<?> writeContract(@PathVariable("orderId") Long orderId) {
         orderService.writeContract(orderId);
         return ResponseEntity.ok().build();
     }
 
-    //탁송 방법 선택
+    //탁송 방법 선택 -> order 4단계
     @PutMapping("/{orderId}/deliveryService")
     public ResponseEntity<?> deliveryService(@PathVariable("orderId") Long orderId) {
         orderService.deliveryService(orderId);
