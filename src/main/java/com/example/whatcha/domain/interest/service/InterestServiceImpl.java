@@ -180,6 +180,15 @@ public class InterestServiceImpl implements InterestService {
         Pageable pageable = PageRequest.of(0, limit);
         List<UsedCar> topLikedCars = likedCarRepository.findTopLikedCars(pageable);
 
+        int remaining = limit - topLikedCars.size();
+
+        if (remaining > 0) {
+            Pageable randomPageable = PageRequest.of(0, remaining);
+            List<UsedCar> randomCars = usedCarRepository.findAdditionalCarsRandom(randomPageable);
+
+            topLikedCars.addAll(randomCars);
+        }
+
         return topLikedCars.stream().map(usedCar -> CarPreviewResponseDto.builder()
                 .usedCarId(usedCar.getUsedCarId())
                 .thumbnailUrl(usedCar.getMainImage())
