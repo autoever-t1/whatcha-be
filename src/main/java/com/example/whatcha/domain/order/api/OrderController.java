@@ -53,8 +53,8 @@ public class OrderController {
     @PostMapping("/deposit")
     public ResponseEntity<?> payDeposit(@RequestBody DepositReqDto request) {
         try{
-            String email = SecurityUtils.getLoginUserEmail();
-            DepositResDto response = orderService.payDeposit(email, request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
+            //String email = SecurityUtils.getLoginUserEmail();
+            DepositResDto response = orderService.payDeposit("dhkdwk1041@naver.com", request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계약금 납부하기 오류");

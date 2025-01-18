@@ -146,6 +146,8 @@ public class UsedCar extends BaseEntity {
                 .transmission(this.transmission)
                 .goodsNo(this.goodsNo)
                 .mainImage(this.mainImage)
+                .option(this.option)
+                .likeCount(this.likeCount)
                 .build();
     }
 }
