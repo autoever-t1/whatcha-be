@@ -135,6 +135,16 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    //관리자 모델별 계약 건수
+    @GetMapping("/statistics/model")
+    public ResponseEntity<Map<String, Object>> getStatisticsByModel() {
+        List<CarStatisticsByModelResDto> statistics = adminService.getCarStatisticsByModel();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
+    }
 
 }
 

@@ -54,4 +54,7 @@ public interface AdminService {
     //관리자 날짜별 계약보기
     List<OrderStatisticsByDayResDto> getOrderStatisticsByDay();
 
+    //관리자 차종별 판매 비율보기
+    List<CarStatisticsByModelResDto> getCarStatisticsByModel();
+
 }
