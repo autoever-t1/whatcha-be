@@ -10,6 +10,7 @@ import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.order.domain.OrderProcess;
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
+import com.example.whatcha.domain.order.dto.response.OrderListResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
@@ -23,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -188,5 +191,48 @@ public class OrderServiceImpl implements OrderService {
 
         orderProcess.enableDeliveryService();
     }
+
+    @Override
+    public List<OrderListResDto> getgetAllOrders(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
+
+        List<Order> orders = orderRepository.findByUserId(user.getUserId());
+
+        List<OrderListResDto> orderListResDtos = orders.stream()
+                .map(order -> {
+                    // UsedCar 정보를 조회
+                    UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId())
+                            .orElseThrow(() -> new IllegalArgumentException("Invalid UsedCarId: " + order.getUsedCarId()));
+
+                    // OrderProcess 정보를 조회
+                    OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(order.getOrderId())
+                            .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + order.getOrderId()));
+
+                    // 각 주문의 process 값 설정
+                    int process = 0;
+                    if (!orderProcess.getFullyPaid()) {
+                        process = 1; //잔금 결제중
+                    } else if (!orderProcess.getContractSigned()) {
+                        process = 2; //계약서 작성중
+                    } else if (!orderProcess.getDeliveryService()) {
+                        process = 3; //수령방법 선택중
+                    }
+
+                    return OrderListResDto.builder()
+                            .orderId(order.getOrderId())
+                            .mainImage(usedCar.getMainImage())
+                            .modelName(usedCar.getModelName())
+                            .process(process)
+                            .orderDate(order.getCreatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return orderListResDtos;
+    }
+
+
 
 }

@@ -1,8 +1,11 @@
 package com.example.whatcha.domain.order.service;
 
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
+import com.example.whatcha.domain.order.dto.response.OrderListResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
+
+import java.util.List;
 
 public interface OrderService {
 
@@ -25,4 +28,8 @@ public interface OrderService {
     void deliveryService(Long orderId);
 
     //배송완료
+
+    //주문 목록 조회하기
+    List<OrderListResDto> getgetAllOrders(String email);
+
 }
