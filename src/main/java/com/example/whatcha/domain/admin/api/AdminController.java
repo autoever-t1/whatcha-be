@@ -23,16 +23,6 @@ import java.util.Map;
 public class AdminController {
     private final AdminService adminService;
 
-    @GetMapping("/order/stats/model")
-    public ResponseEntity<?> getStatsByModel() {
-        return null;
-    }
-
-    @GetMapping("/order/stats/age-groups")
-    public ResponseEntity<?> getStatsByAge() {
-        return null;
-    }
-
     //관리자 전체 쿠폰 조회하기
     @GetMapping("/coupon")
     public ResponseEntity<Page<CouponAdminResDto>> getAllAdminCoupon(@PageableDefault(size = 10) Pageable pageable) {
@@ -99,32 +89,33 @@ public class AdminController {
 
     //관리자 지점 정보 보기
     @GetMapping("/branch-store")
-    public ResponseEntity<?> getAllBranchStore() {
+    public ResponseEntity<List<BranchStoreResDto>> getAllBranchStore() {
         List<BranchStoreResDto> response =  adminService.getAllBranchStore();
         return ResponseEntity.ok(response);
     }
 
     //관리자 지점 상세보기
     @GetMapping("/branch-store/{branchStoreId}")
-    public ResponseEntity<?> getBranchStoreById(@PathVariable Long branchStoreId) {
+    public ResponseEntity<List<UsedCarByBranchResDto>> getBranchStoreById(@PathVariable Long branchStoreId) {
         List<UsedCarByBranchResDto> response = adminService.getBranchStoreById(branchStoreId);
         return ResponseEntity.ok(response);
     }
 
     //관리자 대시보드 유저수, 판매차량, 판매금액, 차량재고
     @GetMapping("/dashBoard")
-    public ResponseEntity<?> getAllDashBoard() {
+    public ResponseEntity<DashBoardResDto> getAllDashBoard() {
         DashBoardResDto response = adminService.getDashBoard();
         return ResponseEntity.ok(response);
     }
 
     //관리자 대시보드 최근 거래내역
     @GetMapping("/tradeHistory")
-    public ResponseEntity<?> getAllTradeHistory() {
+    public ResponseEntity<List<TradeHistoryResDto>> getAllTradeHistory() {
         List<TradeHistoryResDto> response = adminService.getTradeHistory();
         return ResponseEntity.ok(response);
     }
 
+    //관리자 차량 등록하기
 
 
 
