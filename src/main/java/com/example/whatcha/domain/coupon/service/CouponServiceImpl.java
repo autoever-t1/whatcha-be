@@ -84,17 +84,32 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public Page<CouponResDto> getAllCoupons(String email, Pageable pageable) {
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found: " + email));
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + email));
         Long userId = user.getUserId();
+
         // userId로 UserCoupons 페이지 조회
         Page<UserCoupons> userCouponsPage = userCouponsRepository.findAllByUserUserId(userId, pageable);
 
         // 각 UserCoupons에서 Coupon 정보를 조회하고 CouponResDto로 변환
         return userCouponsPage.map(userCoupon -> {
-            Coupon coupon = couponRepository.findById(userCoupon.getCoupon().getCouponId())
-                    .orElseThrow(() -> new CouponNotFoundException("Coupon not found for id: " + userCoupon.getCoupon().getCouponId()));
+            // Coupon 조회, 없을 경우 null로 처리
+            Coupon coupon = couponRepository.findById(userCoupon.getCoupon().getCouponId()).orElse(null);
 
+            // Coupon이 null인 경우 null 대신 빈 CouponResDto 반환
+            if (coupon == null) {
+                return CouponResDto.builder()
+                        .userCouponId(null)
+                        .couponName(null)
+                        .discountPercentage(null)
+                        .discountAmount(null)
+                        .maxDiscountAmount(null)
+                        .expiryDate(null)
+                        .build();
+            }
+
+            // Coupon이 존재하는 경우 정상적으로 DTO 변환
             return CouponResDto.builder()
                     .userCouponId(userCoupon.getCoupon().getCouponId())
                     .couponName(coupon.getCouponName())
@@ -105,6 +120,7 @@ public class CouponServiceImpl implements CouponService {
                     .build();
         });
     }
+
 
 
 
