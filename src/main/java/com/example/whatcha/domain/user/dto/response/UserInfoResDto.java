@@ -11,6 +11,7 @@ public class UserInfoResDto {
     private Long userId;
     private String email;
     private String name;
+    private String gender;
     private String address;
     private UserType userType;
     private Integer ageGroup;
@@ -30,6 +31,7 @@ public class UserInfoResDto {
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .gender(user.getGender())
                 .address(user.getAddress())
                 .userType(user.getUserType())
                 .ageGroup(user.getAgeGroup())
