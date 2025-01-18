@@ -17,7 +17,6 @@ import com.example.whatcha.global.exception.NotFoundException;
 import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
-import com.example.whatcha.global.security.domain.CustomUserDetails;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
@@ -57,46 +56,31 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto) {
-        log.info("[카카오 로그인] 카카오 로그인 정보: appToken = {}, email = {}, name = {}",
-                loginReqDto.getAppToken(), loginReqDto.getEmail(), loginReqDto.getName());
-
-        // 이미 가입된 사용자 확인
         User user = userRepository.findByEmail(loginReqDto.getEmail())
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND.getMessage()));
 
-        log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
+        TokenInfo tokenInfo = setFirstAuthentication(loginReqDto.getEmail());
 
-         TokenInfo tokenInfo = setFirstAuthentication(loginReqDto.getEmail());
-
-        log.info("[카카오 로그인] access 토큰 정보: {}", tokenInfo.getAccessToken());
-        log.info("[카카오 로그인] 리프레시 토큰 정보: {}", tokenInfo.getRefreshToken());
         logoutAccessTokenRepository.deleteById(loginReqDto.getEmail());
 
         // Refresh Token을 Redis에 저장
         saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
 
-        // 응답 객체 반환
+        log.info("[카카오 로그인 성공] 사용자: {}", user.getEmail());
+
         return AuthenticatedResDto.builder()
                 .userInfo(UserInfoResDto.entityToResDto(user))
                 .tokenInfo(tokenInfo)
                 .build();
     }
 
-
-
     @Override
     public AuthenticatedResDto signUp(SignUpReqDto signUpReqDto) {
-        log.info("[카카오 회원가입] 신규 회원 등록 시도: 이메일 = {}, 이름 = {}", signUpReqDto.getEmail(), signUpReqDto.getName());
-
-        // 회원가입 정보 유효성 확인
         if (userRepository.findByEmail(signUpReqDto.getEmail()) != null) {
-            log.error("[회원가입] 이미 등록 된 회원.");
             throw new InvalidSignUpException(UserExceptionMessage.SIGN_UP_NOT_VALID.getMessage());
         }
 
         User user = userRepository.save(signUpReqDto.dtoToEntity());
-
-        log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
@@ -104,16 +88,14 @@ public class UserServiceImpl implements UserService {
                 Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
         );
 
-        // JWT 토큰 생성
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
-        log.info("[카카오 로그인] access 토큰 정보: {}", tokenInfo.getAccessToken());
-        log.info("[카카오 로그인] 리프레시 토큰 정보: {}", tokenInfo.getRefreshToken());
         logoutAccessTokenRepository.deleteById(signUpReqDto.getEmail());
-        // Refresh Token을 Redis에 저장
+
         saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
 
-        // 응답 객체 반환
+        log.info("[카카오 회원가입 성공] 이메일: {}", user.getEmail());
+
         return AuthenticatedResDto.builder()
                 .userInfo(UserInfoResDto.entityToResDto(user))
                 .tokenInfo(tokenInfo)
@@ -214,15 +196,14 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public TokenInfo reissueToken(String accessToken, String refreshToken) {
-        log.info("[토큰 재발급] 토큰 재발급 요청. accessToken : {}, refreshToken : {}", accessToken, refreshToken);
-
         String email = getEmailFromToken(refreshToken);
 
         checkRefreshToken(refreshToken, email);
 
         TokenInfo newTokenInfo = addTokens(email);
 
-        log.info("[토큰 재발급] 토큰 재발급 성공. 새로운 accessToken : {}, 새로운 refreshToken : {}", newTokenInfo.getAccessToken(), newTokenInfo.getRefreshToken());
+        log.info("[토큰 재발급 성공] 새로운 토큰 발급: {}", newTokenInfo.getAccessToken());
+
         return newTokenInfo;
     }
 
@@ -266,11 +247,10 @@ public class UserServiceImpl implements UserService {
                 .getRefreshToken();
 
         if (!storedToken.equals(refreshToken)) {
-            log.error("[토큰 재발급] 토큰 불일치. 재발급 불가.");
+            log.error("[토큰 불일치] 토큰 불일치로 재발급 실패. 이메일: {}", email);
             throw new TokenException(TOKEN_MISMATCH.getMessage());
         }
     }
-
 
     /**
      * 인증 후 Access 및 Refresh Token 발급
@@ -281,10 +261,10 @@ public class UserServiceImpl implements UserService {
 
         try {
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-            log.info("[인증 처리] 인증 성공. email : {}", email);
+            log.info("[인증 성공] 사용자 인증: {}", email);
             return jwtTokenProvider.generateToken(authentication);
         } catch (Exception e) {
-            log.error("[인증 실패] email : {}, error: {}", email, e.getMessage());
+            log.error("[인증 실패] 이메일: {}, 오류: {}", email, e.getMessage());
             throw e;
         }
     }
