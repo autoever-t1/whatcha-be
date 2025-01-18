@@ -1,6 +1,7 @@
 package com.example.whatcha.domain.usedCar.domain;
 
 import com.example.whatcha.domain.branchStore.domain.BranchStore;
+import com.example.whatcha.domain.interest.domain.LikedCar;
 import com.example.whatcha.global.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,10 +33,13 @@ public class UsedCar extends BaseEntity {
     private BranchStore branchStore;
 
     @OneToOne
-    @JoinColumn(name = "option_id",  nullable = true)
+    @JoinColumn(name = "option_id", nullable = true)
     private Option option;
 
-    @Column(nullable = false)
+    @OneToMany(mappedBy = "usedCar", fetch = FetchType.LAZY)
+    private List<LikedCar> likedCars;
+
+    @Column(name = "model_name", nullable = false)
     private String modelName;
 
     @Column(nullable = false)
@@ -42,29 +47,34 @@ public class UsedCar extends BaseEntity {
 
     private String registrationDate; //최초등록
 
-    @Column(nullable = false)
+    @Column(name = "mileage", nullable = false)
     private String mileage; //주행거리
 
+    @Column(name = "fuel_type")
     private String fuelType; //연료
 
+    @Column(name = "engine_capacity")
     private Double engineCapacity; //배기량
 
-    @Column(nullable = false)
+    @Column(name = "exterior_color", nullable = false)
     private String exteriorColor; //외관컬러
 
-    @Column(nullable = false)
+    @Column(name = "interior_color", nullable = false)
     private String interiorColor; //내장컬러
 
+    @Column(name = "model_type")
     private String modelType; //차종
 
+    @Column(name = "passenger_capacity")
     private Integer passengerCapacity; //승차인원
 
+    @Column(name = "drive_type")
     private String driveType; //구동방식
 
     @Column(nullable = false, unique = true)
     private String vhclRegNo; //차량번호
 
-    @Column(nullable = false)
+    @Column(name = "years", nullable = false)
     private String years; //연식
 
     private String transmission; //변속기
@@ -83,7 +93,7 @@ public class UsedCar extends BaseEntity {
                    String vhclRegNo, String modelName, String modelType, String fuelType, String mileage,
                    String exteriorColor, String interiorColor, Integer price, String status, String years,
                    Double engineCapacity, Integer passengerCapacity, String driveType, String transmission,
-                   String goodsNo, String mainImage, Integer likeCount, Option option) {  // option 필드 추가
+                   String goodsNo, String mainImage, Integer likeCount, Option option) {
         this.usedCarId = usedCarId;
         this.model = model;
         this.color = color;
@@ -111,5 +121,31 @@ public class UsedCar extends BaseEntity {
 
     public void updateLikeCount() {
         this.likeCount += 1;
+    }
+
+    public UsedCar changeStatus(String newStatus) {
+        return UsedCar.builder()
+                .usedCarId(this.usedCarId)
+                .model(this.model)
+                .color(this.color)
+                .branchStore(this.branchStore)
+                .registrationDate(this.registrationDate)
+                .vhclRegNo(this.vhclRegNo)
+                .modelName(this.modelName)
+                .modelType(this.modelType)
+                .fuelType(this.fuelType)
+                .mileage(this.mileage)
+                .exteriorColor(this.exteriorColor)
+                .interiorColor(this.interiorColor)
+                .price(this.price)
+                .status(newStatus) // status 값 바꿔주기
+                .years(this.years)
+                .engineCapacity(this.engineCapacity)
+                .passengerCapacity(this.passengerCapacity)
+                .driveType(this.driveType)
+                .transmission(this.transmission)
+                .goodsNo(this.goodsNo)
+                .mainImage(this.mainImage)
+                .build();
     }
 }

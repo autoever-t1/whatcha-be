@@ -46,11 +46,11 @@ spring:
     show-sql: true
 
   redis:
-    host: localhost
-#    host: 172.31.37.49
+#    host: localhost
+    host: 172.31.37.49
     port: 6379
-    password: ""
-#    password: ${secret.redis.password}
+#    password: ""
+    password: ${secret.redis.password}
 
   mail:
     host: smtp.gmail.com
