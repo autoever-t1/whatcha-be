@@ -7,6 +7,7 @@ import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import com.example.whatcha.domain.usedCar.service.UsedCarService;
 import com.google.api.Http;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/used-car")
 @RequiredArgsConstructor
@@ -41,8 +43,9 @@ public class UsedCarController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page) {
 
-        //url 디코딩
+        // URL 디코딩
         String decodedKeyword = decodeParam(keyword);
+
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarService.searchUsedCar(decodedKeyword, page));
     }
@@ -78,20 +81,20 @@ public class UsedCarController {
             @RequestParam(required = false) Integer priceMax,
             @RequestParam(defaultValue = "0") int page) {
 
+        // 디코딩 및 빈 리스트 처리
         if (modelTypes != null) {
             modelTypes.replaceAll(this::decodeParam);
+            if (modelTypes.isEmpty()) modelTypes = null;
         }
         if (modelNames != null) {
             modelNames.replaceAll(this::decodeParam);
+            if (modelNames.isEmpty()) modelNames = null;
         }
         if (fuelTypes != null) {
             fuelTypes.replaceAll(this::decodeParam);
+            if (fuelTypes.isEmpty()) fuelTypes = null;
         }
-
         if (colorIds != null && colorIds.isEmpty()) colorIds = null;
-        if (modelTypes != null && modelTypes.isEmpty()) modelTypes = null;
-        if (modelNames != null && modelNames.isEmpty()) modelNames = null;
-        if (fuelTypes != null && fuelTypes.isEmpty()) fuelTypes = null;
 
         Page<UsedCarListResDto> usedCarList = usedCarService.filterUsedCars(colorIds, modelTypes, modelNames,
                 mileageMin, mileageMax, yearMin, yearMax, fuelTypes,
