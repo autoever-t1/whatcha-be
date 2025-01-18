@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -271,5 +272,22 @@ public class AdminServiceImpl implements AdminService {
         usedCarRepository.save(usedCar);
     }
 
+    @Override
+    public List<OrderStatisticsByDayResDto> getOrderStatisticsByDay() {
+        List<Order> orders = orderRepository.findAll();
 
+        Map<LocalDate, Long> orderStatistics = orders.stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getCreatedAt(), // createdAt기준
+                        Collectors.counting() // 그룹별 개수 카운팅
+                ));
+
+        return orderStatistics.entrySet().stream()
+                .map(entry -> OrderStatisticsByDayResDto.builder()
+                        .date(entry.getKey())
+                        .count(entry.getValue().intValue())
+                        .build())
+                .sorted(Comparator.comparing(OrderStatisticsByDayResDto::getDate)) // 날짜순 정렬
+                .collect(Collectors.toList());
+    }
 }

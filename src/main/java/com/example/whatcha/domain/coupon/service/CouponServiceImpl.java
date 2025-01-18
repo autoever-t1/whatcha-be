@@ -103,7 +103,6 @@ public class CouponServiceImpl implements CouponService {
                         .userCouponId(null)
                         .couponName(null)
                         .discountPercentage(null)
-                        .discountAmount(null)
                         .maxDiscountAmount(null)
                         .expiryDate(null)
                         .build();
@@ -114,7 +113,6 @@ public class CouponServiceImpl implements CouponService {
                     .userCouponId(userCoupon.getCoupon().getCouponId())
                     .couponName(coupon.getCouponName())
                     .discountPercentage(coupon.getDiscountPercentage())
-                    .discountAmount(coupon.getDiscountAmount())
                     .maxDiscountAmount(coupon.getMaxDiscountAmount())
                     .expiryDate(userCoupon.getExpiryDate())
                     .build();

@@ -16,8 +16,6 @@ public class CouponResDto {
 
     private Integer discountPercentage;
 
-    private Integer discountAmount;
-
     private Integer maxDiscountAmount;
 
     private LocalDate expiryDate;

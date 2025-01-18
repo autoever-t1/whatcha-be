@@ -5,6 +5,7 @@ import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
+import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -121,6 +122,17 @@ public class AdminController {
     public ResponseEntity<?> registerCar(@RequestBody RegisterCarReqDto registerCarReqDto) {
         adminService.registerCar(registerCarReqDto);
         return ResponseEntity.ok().build();
+    }
+
+    //관리자 날짜별 계약 건수
+    @GetMapping("/order/statistics/day")
+    public ResponseEntity<Map<String, Object>> getOrderStatisticsByDay() {
+        List<OrderStatisticsByDayResDto> statistics = adminService.getOrderStatisticsByDay();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
     }
 
 
