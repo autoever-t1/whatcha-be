@@ -110,7 +110,7 @@ public class CouponServiceImpl implements CouponService {
 
             // Coupon이 존재하는 경우 정상적으로 DTO 변환
             return CouponResDto.builder()
-                    .userCouponId(userCoupon.getCoupon().getCouponId())
+                    .userCouponId(userCoupon.getUserCouponId())
                     .couponName(coupon.getCouponName())
                     .discountPercentage(coupon.getDiscountPercentage())
                     .maxDiscountAmount(coupon.getMaxDiscountAmount())
