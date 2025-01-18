@@ -1,18 +1,18 @@
 package com.example.whatcha.domain.order.service;
 
+import com.example.whatcha.domain.admin.dto.response.BranchStoreResDto;
 import com.example.whatcha.domain.branchStore.dao.BranchStoreRepository;
 import com.example.whatcha.domain.branchStore.domain.BranchStore;
 import com.example.whatcha.domain.coupon.dao.CouponRepository;
 import com.example.whatcha.domain.coupon.dao.UserCouponsRepository;
+import com.example.whatcha.domain.coupon.domain.Coupon;
 import com.example.whatcha.domain.coupon.domain.UserCoupons;
+import com.example.whatcha.domain.coupon.dto.response.CouponResDto;
 import com.example.whatcha.domain.order.dao.OrderProcessRepository;
 import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.order.domain.OrderProcess;
-import com.example.whatcha.domain.order.dto.response.DepositResDto;
-import com.example.whatcha.domain.order.dto.response.OrderListResDto;
-import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
-import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.Model;
@@ -233,6 +233,68 @@ public class OrderServiceImpl implements OrderService {
         return orderListResDtos;
     }
 
+    @Override
+    public OrderSheetResDto getOrderSheet(Long orderId) {
+        // Order 객체 조회
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found for orderId: " + orderId));
+
+        // UsedCar 객체 조회
+        UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId())
+                .orElseThrow(() -> new IllegalArgumentException("UsedCar not found for usedCarId: " + order.getUsedCarId()));
+
+        // userCoupons 처리
+        UserCoupons userCoupons = null;
+        CouponResDto couponResDto = null;
+
+        // userCouponId가 null이 아닌 경우에만 쿠폰 정보 처리
+        if (order.getUserCoupons() != null && order.getUserCoupons().getUserCouponId() != null) {
+            Long userCouponId = order.getUserCoupons().getUserCouponId();
+            userCoupons = userCouponsRepository.findById(userCouponId).orElse(null);
+
+            if (userCoupons != null) {
+                // 쿠폰 객체 가져오기 및 비활성화 처리
+                Coupon coupon = userCoupons.getCoupon();
+                couponResDto = CouponResDto.builder()
+                        .userCouponId(userCouponId)
+                        .couponName(coupon.getCouponName())
+                        .discountPercentage(coupon.getDiscountPercentage())
+                        .maxDiscountAmount(coupon.getMaxDiscountAmount())
+                        .expiryDate(userCoupons.getExpiryDate())
+                        .build();
+            }
+        }
+
+        // OrderProcess 객체 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(order.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + order.getOrderId()));
+
+        OrderResDto orderResDto = OrderResDto.builder()
+                .orderId(order.getOrderId())
+                .usedCarId(usedCar.getUsedCarId())
+                .fullPayment(order.getFullPayment())
+                .deposit(order.getDeposit())
+                .build();
+
+        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
+
+        // BranchStore 객체 조회
+        BranchStore branchStore = branchStoreRepository.findById(usedCar.getBranchStore().getBranchStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("BranchStore not found for usedCarId: " + usedCar.getUsedCarId()));
+
+        BranchStoreResDto branchStoreResDto = BranchStoreResDto.entityToResDto(branchStore);
+
+        // 최종 OrderSheetResDto 생성 및 반환
+        return OrderSheetResDto.builder()
+                .price(usedCar.getPrice())
+                .registrationDate(usedCar.getRegistrationDate())
+                .vhclRegNo(usedCar.getVhclRegNo())
+                .couponInfo(couponResDto)
+                .orderInfo(orderResDto)
+                .orderProcessInfo(orderProcessResDto)
+                .branchStoreInfo(branchStoreResDto)
+                .build();
+    }
 
 
 }
