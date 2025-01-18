@@ -21,24 +21,6 @@ public class FcmServiceImpl implements FcmService {
     @Value("${firebase.fcm.api-url}")
     private String apiUrl;
 
-    @Override
-    public int sendMessage(String message) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + getAccessToken());
-
-        HttpEntity<String> entity = new HttpEntity<>(message, headers);
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class);
-
-        System.out.println("Response Status: " + response.getStatusCode());
-        System.out.println("Response Body: " + response.getBody());
-
-        return response.getStatusCode() == HttpStatus.OK ? 1 : 0;
-    }
-
     private String getAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(firebaseConfigPath.getInputStream())
@@ -47,4 +29,32 @@ public class FcmServiceImpl implements FcmService {
         googleCredentials.refreshIfExpired();
         return googleCredentials.getAccessToken().getTokenValue();
     }
+
+    private String makeMessage(String targetToken, String title, String body) throws com.fasterxml.jackson.core.JsonProcessingException {
+        FcmMessage
+    }
+
+    public void sendMessageTo(String title, String body) throws IOException {
+        String message = makeMessage
+    }
+
+//    @Override
+//    public int sendMessage(String message) throws IOException {
+//        RestTemplate restTemplate = new RestTemplate();
+//        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.set("Authorization", "Bearer " + getAccessToken());
+//
+//        HttpEntity<String> entity = new HttpEntity<>(message, headers);
+//        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class);
+//
+//        System.out.println("Response Status: " + response.getStatusCode());
+//        System.out.println("Response Body: " + response.getBody());
+//
+//        return response.getStatusCode() == HttpStatus.OK ? 1 : 0;
+//    }
+
+
 }

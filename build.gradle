@@ -70,7 +70,7 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
 
     // firebase
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.4.2'
 
 }
 
