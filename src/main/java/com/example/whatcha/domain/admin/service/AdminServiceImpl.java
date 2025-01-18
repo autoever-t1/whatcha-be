@@ -210,8 +210,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<TradeHistoryResDto> getTradeHistory() {
-        // Order 테이블의 모든 데이터 가져오기
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAllByOrderByCreatedAtDesc();
 
         // TradeHistoryResDto 리스트 생성
         List<TradeHistoryResDto> tradeHistoryList = orders.stream()
