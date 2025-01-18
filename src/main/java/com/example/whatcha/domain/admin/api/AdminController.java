@@ -49,7 +49,7 @@ public class AdminController {
 
     //관리자 쿠폰 상세조회하기
     @GetMapping("/coupon/{couponId}")
-    public ResponseEntity<?> getCouponById(@PathVariable Long couponId) {
+    public ResponseEntity<CouponAdminResDto> getCouponById(@PathVariable Long couponId) {
         CouponAdminResDto response = adminService.getCouponById(couponId);
         return ResponseEntity.ok(response);
     }
@@ -63,21 +63,21 @@ public class AdminController {
 
     //관리자 전체 회원보기
     @GetMapping("/user")
-    public ResponseEntity<?> getAllUser() {
+    public ResponseEntity<List<UserInfoResDto>> getAllUser() {
         List<UserInfoResDto> response =  adminService.getAllUser();
         return ResponseEntity.ok(response);
     }
 
     //관리자 회원 상세보기
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<UserInfoResDto> getUserById(@PathVariable Long userId) {
         UserInfoResDto response = adminService.getUserById(userId);
         return ResponseEntity.ok(response);
     }
 
     //관리자 회원 나이대별 통계보기
     @GetMapping("/user/statistics/age")
-    public ResponseEntity<?> getUserStatisticsByAge() {
+    public ResponseEntity<Map<String, Object>> getUserStatisticsByAge() {
         List<AgeStatisticsDto> statistics = adminService.getAgeStatistics();
 
         Map<String, Object> response = new HashMap<>();
@@ -88,7 +88,7 @@ public class AdminController {
 
     //관리자 회원 성별 통계보기
     @GetMapping("/user/statistics/gender")
-    public ResponseEntity<?> getUserStatisticsByGender() {
+    public ResponseEntity<Map<String, Object>> getUserStatisticsByGender() {
         List<GenderStatisticsDto> statistics = adminService.getGenderStatistics();
 
         Map<String, Object> response = new HashMap<>();
