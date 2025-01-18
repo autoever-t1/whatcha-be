@@ -1,10 +1,8 @@
 package com.example.whatcha.domain.order.api;
 
+import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.order.dto.request.DepositReqDto;
-import com.example.whatcha.domain.order.dto.response.DepositResDto;
-import com.example.whatcha.domain.order.dto.response.OrderListResDto;
-import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
-import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.order.service.OrderService;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+    private final AdminService adminService;
 
     // 주문 프로세스 진행 현황 보기
     @GetMapping("/{orderId}/process")
@@ -86,7 +85,8 @@ public class OrderController {
     // 사용자 주문서 보기
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrder(@PathVariable("orderId") Long orderId) {
-        return null;
+        OrderSheetResDto response = orderService.getOrderSheet(orderId);
+        return ResponseEntity.ok(response);
     }
 
     // 사용자 주문목록 조회
@@ -96,4 +96,5 @@ public class OrderController {
         List<OrderListResDto> response = orderService.getgetAllOrders(email);
         return ResponseEntity.ok(response);
     }
+
 }
