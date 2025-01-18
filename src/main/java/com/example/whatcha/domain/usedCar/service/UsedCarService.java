@@ -2,6 +2,7 @@ package com.example.whatcha.domain.usedCar.service;
 
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -25,4 +26,6 @@ public interface UsedCarService {
                                            Boolean hasSmartCruiseControl, Boolean hasFrontParkingWarning,
                                            Integer priceMin, Integer priceMax,
                                            int page);
+
+    UsedCarOrderInfoResDto findOneUsedCarOrderInfo(Long usedCarId);
 }

@@ -1,8 +1,11 @@
 package com.example.whatcha.domain.usedCar.api;
 
+import com.amazonaws.Response;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import com.example.whatcha.domain.usedCar.service.UsedCarService;
+import com.google.api.Http;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -106,5 +109,11 @@ public class UsedCarController {
     public ResponseEntity<UsedCarDetailResDto> findOneUsedCar(@PathVariable Long usedCarId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarService.findOneUsedCar(usedCarId));
+    }
+
+    @GetMapping("/order/{usedCarId}")
+    public ResponseEntity<UsedCarOrderInfoResDto> usedCarOrderInfo(@PathVariable Long usedCarId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(usedCarService.findOneUsedCarOrderInfo(usedCarId));
     }
 }

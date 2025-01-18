@@ -5,6 +5,7 @@ import com.example.whatcha.domain.usedCar.dao.UsedCarSpecification;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import com.example.whatcha.domain.usedCar.exception.UsedCarNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,5 +78,18 @@ public class UsedCarServiceImpl implements UsedCarService {
 
         return usedCarRepository.findAll(spec, pageable)
                 .map(UsedCarListResDto::entityToDto);
+    }
+
+    @Override
+    public UsedCarOrderInfoResDto findOneUsedCarOrderInfo(Long usedCarId) {
+        UsedCar usedCar = usedCarRepository.findById(usedCarId)
+                .orElseThrow(() -> new UsedCarNotFoundException(USED_CAR_NOT_FOUND.getMessage()));
+
+        return UsedCarOrderInfoResDto.builder()
+                .modelName(usedCar.getModelName())
+                .registrationDate(usedCar.getRegistrationDate())
+                .mileage(usedCar.getMileage())
+                .price(usedCar.getPrice())
+                .build();
     }
 }
