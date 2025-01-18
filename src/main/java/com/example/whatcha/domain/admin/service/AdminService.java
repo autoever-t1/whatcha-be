@@ -48,5 +48,10 @@ public interface AdminService {
     //관리자 거래내역 보기
     List<TradeHistoryResDto> getTradeHistory();
 
+    //관리자 매물 등록하기
     void registerCar(RegisterCarReqDto registerCarReqDto);
+
+    //관리자 날짜별 계약보기
+    List<OrderStatisticsByDayResDto> getOrderStatisticsByDay();
+
 }
