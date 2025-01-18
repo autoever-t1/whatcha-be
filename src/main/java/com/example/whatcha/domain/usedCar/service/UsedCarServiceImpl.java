@@ -45,9 +45,10 @@ public class UsedCarServiceImpl implements UsedCarService {
 
     @Override
     public UsedCarDetailResDto findOneUsedCar(Long usedCarId) {
+        User loginUser = getLoginUser();
         UsedCar usedCar = usedCarRepository.findById(usedCarId)
                 .orElseThrow(() -> new UsedCarNotFoundException(USED_CAR_NOT_FOUND.getMessage()));
-        return UsedCarDetailResDto.entityToResDto(usedCar);
+        return UsedCarDetailResDto.entityToResDto(usedCar, loginUser, likedCarRepository);
     }
 
     @Override
