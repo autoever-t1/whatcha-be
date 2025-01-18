@@ -10,6 +10,7 @@ import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import com.example.whatcha.domain.coupon.exception.CouponNotFoundException;
 import com.example.whatcha.domain.order.dao.OrderRepository;
+import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
@@ -22,10 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -208,5 +206,35 @@ public class AdminServiceImpl implements AdminService {
                 .totalSales(totalSales)
                 .carStock(carStock)
                 .build();
+    }
+
+    @Override
+    public List<TradeHistoryResDto> getTradeHistory() {
+        List<Order> orders = orderRepository.findAllByOrderByCreatedAtDesc();
+
+        // TradeHistoryResDto 리스트 생성
+        List<TradeHistoryResDto> tradeHistoryList = orders.stream()
+                .map(order -> {
+                    // usedCarId로 UsedCar 정보 조회
+                    Optional<UsedCar> usedCarOpt = usedCarRepository.findById(order.getUsedCarId());
+                    if (usedCarOpt.isPresent()) {
+                        UsedCar usedCar = usedCarOpt.get();
+                        // TradeHistoryResDto 생성
+                        return TradeHistoryResDto.builder()
+                                .goodsNo(usedCar.getGoodsNo())
+                                .modelName(usedCar.getModelName())
+                                .years(usedCar.getYears())
+                                .price(usedCar.getPrice())
+                                .modelType(usedCar.getModelType())
+                                .status(usedCar.getStatus())
+                                .build();
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull) // null 값을 제외
+                .collect(Collectors.toList());
+
+        return tradeHistoryList;
     }
 }

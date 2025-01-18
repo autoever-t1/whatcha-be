@@ -66,8 +66,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/kakao",
             "/api/upload",
 //            "/api/interest",
-            "/api/order/deposit",
-//            "/api/coupon",
             "/api/admin/coupon",
             "/api/chat",
             "/api/crawling",
@@ -76,7 +74,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/used-car/filter",
             "/api/admin/user",
             "/api/admin/branch-store",
-            "/api/admin/dashBoard"
+            "/api/admin/dashBoard",
+            "/api/admin/tradeHistory",
     };
 
     /**
