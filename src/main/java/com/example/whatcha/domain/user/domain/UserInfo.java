@@ -19,6 +19,7 @@ public class UserInfo {
     private String userId;
     private String email;
     private String name;
+    private String gender;
     private UserType userType;
 
     @TimeToLive(unit = TimeUnit.MILLISECONDS)

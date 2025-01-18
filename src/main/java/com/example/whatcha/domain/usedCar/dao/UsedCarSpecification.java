@@ -13,7 +13,6 @@ public class UsedCarSpecification {
     public Specification<UsedCar> buildSpecification(
             List<Long> colorIds,
             List<String> modelTypes,
-            List<String> modelNames,
             Integer mileageMin,
             Integer mileageMax,
             Integer yearMin,
@@ -48,13 +47,13 @@ public class UsedCarSpecification {
 
             // 모델 타입 필터링
             if (modelTypes != null && !modelTypes.isEmpty()) {
-                predicates.add(root.get("modelType").in(modelTypes));
+                List<Predicate> modelTypePredicates = new ArrayList<>();
+                for (String modelType : modelTypes) {
+                    modelTypePredicates.add(criteriaBuilder.like(root.get("modelType"), "%" + modelType + "%"));
+                }
+                predicates.add(criteriaBuilder.or(modelTypePredicates.toArray(new Predicate[0])));
             }
 
-            // 모델 이름 필터링
-            if (modelNames != null && !modelNames.isEmpty()) {
-                predicates.add(root.get("modelName").in(modelNames));
-            }
 
             // 주행거리 필터링
             if (mileageMin != null) {
@@ -74,7 +73,11 @@ public class UsedCarSpecification {
 
             // 연료 타입 필터링
             if (fuelTypes != null && !fuelTypes.isEmpty()) {
-                predicates.add(root.get("fuelType").in(fuelTypes));
+                List<Predicate> fuelTypePredicates = new ArrayList<>();
+                for (String fuelType : fuelTypes) {
+                    fuelTypePredicates.add(criteriaBuilder.like(root.get("fuelType"), "%" + fuelType + "%"));
+                }
+                predicates.add(criteriaBuilder.or(fuelTypePredicates.toArray(new Predicate[0])));
             }
 
             // 가격 필터링

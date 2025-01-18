@@ -9,4 +9,5 @@ public class LoginResDto {
     private String userType;
     private Long userId;
     private String name;
+    private String gender;
 }

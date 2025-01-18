@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UsedCarRepository extends JpaRepository<UsedCar, Long>, JpaSpecificationExecutor<UsedCar> {
 
@@ -33,9 +34,9 @@ public interface UsedCarRepository extends JpaRepository<UsedCar, Long>, JpaSpec
             @Param("excludeIds") List<Long> excludeIds,
             Pageable pageable);
 
-    @Query("SELECT u FROM UsedCar u WHERE u.modelName LIKE %:keyword% OR u.vhclRegNo LIKE %:keyword%")
-    Page<UsedCar> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
     List<UsedCar> findByBranchStore_BranchStoreId(Long branchStoreId);
 
+    Page<UsedCar> findByModelNameContainingIgnoreCaseOrVhclRegNoContainingIgnoreCase(String modelName, String vhclRegNo, Pageable pageable);
+
+    Optional<UsedCar> findByGoodsNo(String goodsNo);
 }
