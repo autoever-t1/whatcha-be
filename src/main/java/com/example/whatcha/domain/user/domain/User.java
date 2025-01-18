@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -66,6 +68,7 @@ public class User extends BaseEntity {
     private String appToken;
 
     private String gender;
+
 
     @Builder
     public User(String email, String name, String address, UserType userType,
