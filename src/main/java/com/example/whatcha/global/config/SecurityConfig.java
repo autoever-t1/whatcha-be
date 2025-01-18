@@ -1,15 +1,18 @@
 package com.example.whatcha.global.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.whatcha.domain.user.dao.LogoutAccessTokenRedisRepository;
 import com.example.whatcha.domain.user.service.UserRedisService;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
+import com.example.whatcha.global.security.CustomAuthenticationProvider;
 import com.example.whatcha.global.security.filter.CustomAuthenticationFilter;
 import com.example.whatcha.global.security.handler.CustomAccessDeniedHandler;
 import com.example.whatcha.global.security.handler.CustomAuthenticationEntryPoint;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,29 +33,32 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final LogoutAccessTokenRedisRepository logoutAccessTokenRedisRepository;
-
+    private final CustomAuthenticationProvider customAuthenticationProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(customAuthenticationProvider)
+                .build();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
-
                 .httpBasic().disable()
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-
                 .authorizeRequests()
-
-                .anyRequest().permitAll() // 필터에서 거름
-
+                .antMatchers("/ws/**").permitAll()
+                .anyRequest().permitAll()
                 .and()
                 .exceptionHandling()
                 .accessDeniedHandler(new CustomAccessDeniedHandler(objectMapper))
@@ -65,11 +71,9 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
         configuration.addAllowedOriginPattern("*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
@@ -77,18 +81,8 @@ public class SecurityConfig {
         configuration.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-    }
-
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
-                .anyRequest().authenticated()
-                .and()
-                .csrf().disable(); // WebSocket은 CSRF 보호가 필요하지 않음
     }
 }

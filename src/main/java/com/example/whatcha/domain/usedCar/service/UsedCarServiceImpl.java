@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.usedCar.service;
 
+import com.example.whatcha.domain.interest.dao.LikedCarRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarSpecification;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
@@ -33,6 +34,7 @@ public class UsedCarServiceImpl implements UsedCarService {
     private final UsedCarRepository usedCarRepository;
     private final UsedCarSpecification usedCarSpecification;
     private final UserRepository userRepository;
+    private final LikedCarRepository likedCarRepository;
     private final SecurityUtils securityUtils;
 
     private User getLoginUser() {
@@ -41,28 +43,27 @@ public class UsedCarServiceImpl implements UsedCarService {
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND.getMessage()));
     }
 
-
     @Override
     public UsedCarDetailResDto findOneUsedCar(Long usedCarId) {
         UsedCar usedCar = usedCarRepository.findById(usedCarId)
                 .orElseThrow(() -> new UsedCarNotFoundException(USED_CAR_NOT_FOUND.getMessage()));
-
         return UsedCarDetailResDto.entityToResDto(usedCar);
     }
 
     @Override
     public Page<UsedCarListResDto> findAllUsedCar(int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
+        User loginUser = getLoginUser();
         return usedCarRepository.findAll(pageable)
-                .map(UsedCarListResDto::entityToDto);
+                .map(usedCar -> UsedCarListResDto.entityToDto(usedCar, loginUser, likedCarRepository));
     }
 
     @Override
     public Page<UsedCarListResDto> searchUsedCar(String keyword, int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
-
+        User loginUser = getLoginUser();
         return usedCarRepository.findByModelNameContainingIgnoreCaseOrVhclRegNoContainingIgnoreCase(keyword, keyword, pageable)
-                .map(UsedCarListResDto::entityToDto);
+                .map(usedCar -> UsedCarListResDto.entityToDto(usedCar, loginUser, likedCarRepository));
     }
 
     @Override
@@ -79,6 +80,8 @@ public class UsedCarServiceImpl implements UsedCarService {
         // 먼저 페이지네이션 없이 필터링된 결과 가져오기
         Pageable pageable = Pageable.unpaged();
 
+        User loginUser = getLoginUser();
+
         // 1: 검색 파라미터를 기반으로 필터링할 Specification 생성
         Specification<UsedCar> spec = usedCarSpecification.buildSpecification(
                 colorIds, modelTypes, mileageMin, mileageMax,
@@ -91,13 +94,8 @@ public class UsedCarServiceImpl implements UsedCarService {
         // 2: Specification을 기반으로 필터링된 전체 데이터 가져오기
         List<UsedCar> filteredCars = usedCarRepository.findAll(Specification.where(spec));
 
-        log.info("============================================================");
-        log.info("모델 이름 필터링 전 결과: ");
-        filteredCars.forEach(car -> log.info("차 ID: {}, 모델 이름: {}", car.getUsedCarId(), car.getModelName()));
-
         // 3: 모델 이름 필터링 (필터링된 결과에서)
         if (modelNames != null && !modelNames.isEmpty()) {
-            log.info("모델 이름 필터링 중... {}", modelNames);
 
             filteredCars = filteredCars.stream()
                     .filter(usedCar -> modelNames.stream()
@@ -106,8 +104,8 @@ public class UsedCarServiceImpl implements UsedCarService {
         }
 
         // 4: 결과 DTO 변환
-        List<UsedCarListResDto> resultDtoList = filteredCars.stream()
-                .map(UsedCarListResDto::entityToDto)
+        List<UsedCarListResDto> resultDtoList = filteredCars.stream() // 스트림 생성
+                .map(usedCar -> UsedCarListResDto.entityToDto(usedCar, loginUser, likedCarRepository))
                 .collect(Collectors.toList());
 
         // 5: 페이지네이션 적용
@@ -120,7 +118,7 @@ public class UsedCarServiceImpl implements UsedCarService {
         // 6: 페이지네이션된 결과 반환
         return new PageImpl<>(pageContent, finalPageable, totalElements);
     }
-  
+
     @Override
     public UsedCarOrderInfoResDto findOneUsedCarOrderInfo(Long usedCarId) {
         UsedCar usedCar = usedCarRepository.findById(usedCarId)

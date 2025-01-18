@@ -66,18 +66,11 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
 
-        // CustomUserDetails 객체 생성
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+         TokenInfo tokenInfo = setFirstAuthentication(loginReqDto.getEmail());
 
-        // JWT 토큰 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
-        );
-
-        // JWT 토큰 생성
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        log.info("[카카오 로그인] access 토큰 정보: {}", tokenInfo.getAccessToken());
+        log.info("[카카오 로그인] 리프레시 토큰 정보: {}", tokenInfo.getRefreshToken());
+        logoutAccessTokenRepository.deleteById(loginReqDto.getEmail());
 
         // Refresh Token을 Redis에 저장
         saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
@@ -88,6 +81,7 @@ public class UserServiceImpl implements UserService {
                 .tokenInfo(tokenInfo)
                 .build();
     }
+
 
 
     @Override
@@ -104,19 +98,18 @@ public class UserServiceImpl implements UserService {
 
         log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
 
-        // CustomUserDetails 객체 생성
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        // JWT 토큰 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                user.getEmail(),
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
         );
 
-        // JWT 토큰 생성 (accessToken, refreshToken)
+        // JWT 토큰 생성
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
+        log.info("[카카오 로그인] access 토큰 정보: {}", tokenInfo.getAccessToken());
+        log.info("[카카오 로그인] 리프레시 토큰 정보: {}", tokenInfo.getRefreshToken());
+        logoutAccessTokenRepository.deleteById(signUpReqDto.getEmail());
         // Refresh Token을 Redis에 저장
         saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
 
@@ -282,9 +275,9 @@ public class UserServiceImpl implements UserService {
     /**
      * 인증 후 Access 및 Refresh Token 발급
      */
-    private TokenInfo setFirstAuthentication(String email, String password) {
+    private TokenInfo setFirstAuthentication(String email) {
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(email, password);
+                new UsernamePasswordAuthenticationToken(email, null);
 
         try {
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
