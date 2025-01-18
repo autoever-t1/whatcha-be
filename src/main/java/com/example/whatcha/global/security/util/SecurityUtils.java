@@ -35,16 +35,17 @@ public class SecurityUtils {
                     .getContext()
                     .getAuthentication());
 
-            if (authentication instanceof AnonymousAuthenticationToken) {
-                authentication = null;
+            if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+                throw new IllegalStateException(NOT_FOUND_LOGIN_USER.getMessage());
             }
 
             return userRepository.findByEmail(authentication.getName())
                     .orElseThrow(() -> new UserNotFoundException(UserExceptionMessage.USER_NOT_FOUND.getMessage()));
         } catch (NullPointerException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
+
 
     public Long getLoginUserId() {
         User user = getLoginUser();

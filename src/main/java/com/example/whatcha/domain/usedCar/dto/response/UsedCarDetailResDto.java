@@ -1,7 +1,8 @@
 package com.example.whatcha.domain.usedCar.dto.response;
 
-import com.example.whatcha.domain.usedCar.domain.Option;
+import com.example.whatcha.domain.interest.dao.LikedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
+import com.example.whatcha.domain.user.domain.User;
 import lombok.Builder;
 import lombok.Data;
 
@@ -59,8 +60,11 @@ public class UsedCarDetailResDto {
     private final Boolean hasLaneDepartureWarning;
     private final Boolean hasSmartCruiseControl;
     private final Boolean hasFrontParkingWarning;
+    private final Boolean isLiked;
 
-    public static UsedCarDetailResDto entityToResDto(UsedCar usedCar) {
+    public static UsedCarDetailResDto entityToResDto(UsedCar usedCar, User user, LikedCarRepository likedCarRepository) {
+        boolean isLiked = likedCarRepository.findByUserIdAndUsedCar_UsedCarId(user.getUserId(), usedCar.getUsedCarId()).isPresent();
+
         return UsedCarDetailResDto.builder()
                 // 차량 정보
                 .modelName(usedCar.getModelName())
@@ -112,6 +116,7 @@ public class UsedCarDetailResDto {
                 .hasLaneDepartureWarning(usedCar.getOption().getHasLaneDepartureWarning())
                 .hasSmartCruiseControl(usedCar.getOption().getHasSmartCruiseControl())
                 .hasFrontParkingWarning(usedCar.getOption().getHasFrontParkingWarning())
+                .isLiked(isLiked)
                 .build();
     }
 }

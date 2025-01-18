@@ -50,15 +50,17 @@ public class JwtTokenProvider {
     }
 
     /**
+     * 토큰에서 이메일을 추출합니다.
+     */
+    public String getEmailFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject();
+    }
+
+    /**
      * Access Token과 Refresh Token을 생성하여 TokenInfo 객체로 반환합니다.
      */
     public TokenInfo generateToken(Authentication authentication) {
-
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        String username = customUserDetails.getUsername();
-        UserType userType = customUserDetails.getUserType();
-
-        // 권한 설정
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
@@ -68,9 +70,8 @@ public class JwtTokenProvider {
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRED_IN);
         String accessToken = Jwts.builder()
-                .setSubject(username)
+                .setSubject(authentication.getName())
                 .claim("auth", authorities)
-                .claim("userType", userType.name())
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -78,9 +79,8 @@ public class JwtTokenProvider {
         // Refresh Token 생성
         Date refreshTokenExpiresIn = new Date(now + REFRESH_TOKEN_EXPIRED_IN);
         String refreshToken = Jwts.builder()
-                .setSubject(username)
+                .setSubject(authentication.getName())
                 .claim("auth", authorities)
-                .claim("userType", userType.name())
                 .setExpiration(refreshTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -176,26 +176,6 @@ public class JwtTokenProvider {
             return expiration.getTime() - now; // 남은 시간
         } catch (ExpiredJwtException e) {
             return 0; // 만료된 경우 남은 시간을 0으로 반환
-        }
-    }
-
-    /**
-     * 토큰이 "관리자" 권한을 갖는지 확인합니다.
-     */
-    public boolean validateAdminToken(String token) throws TokenException {
-        try {
-            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-
-            String userType = claims.get("userType", String.class);
-            if (!UserType.ROLE_ADMIN.name().equals(userType)) {
-                throw new UnauthorizedException("관리자 권한이 필요합니다.");
-            }
-            return true;
-        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException |
-                 IllegalArgumentException e) {
-            throw new InvalidTokenException(INVALID_TOKEN.getMessage());
-        } catch (ExpiredJwtException e) {
-            throw new ExpiredTokenException(EXPIRED_TOKEN.getMessage());
         }
     }
 }
