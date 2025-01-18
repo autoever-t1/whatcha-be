@@ -2,6 +2,7 @@ package com.example.whatcha.domain.order.api;
 
 import com.example.whatcha.domain.order.dto.request.DepositReqDto;
 import com.example.whatcha.domain.order.dto.response.DepositResDto;
+import com.example.whatcha.domain.order.dto.response.OrderListResDto;
 import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
 import com.example.whatcha.domain.order.dto.response.OrderResDto;
 import com.example.whatcha.domain.order.service.OrderService;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/order")
@@ -80,8 +83,17 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    // 사용자 주문서 보기
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrder(@PathVariable("orderId") Long orderId) {
         return null;
+    }
+
+    // 사용자 주문목록 조회
+    @GetMapping("/orderList")
+    public ResponseEntity<List<OrderListResDto>> getAllOrders() {
+        String email = SecurityUtils.getLoginUserEmail();
+        List<OrderListResDto> response = orderService.getgetAllOrders(email);
+        return ResponseEntity.ok(response);
     }
 }
