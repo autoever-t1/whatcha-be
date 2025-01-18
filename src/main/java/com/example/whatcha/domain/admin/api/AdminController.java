@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.admin.api;
 
+import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
@@ -115,8 +116,12 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    //관리자 차량 등록하기
-
+    //관리자 매물 등록하기
+    @PostMapping("/registerCar")
+    public ResponseEntity<?> registerCar(@RequestBody RegisterCarReqDto registerCarReqDto) {
+        adminService.registerCar(registerCarReqDto);
+        return ResponseEntity.ok().build();
+    }
 
 
 }

@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.admin.service;
 
+import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
@@ -46,4 +47,6 @@ public interface AdminService {
 
     //관리자 거래내역 보기
     List<TradeHistoryResDto> getTradeHistory();
+
+    void registerCar(RegisterCarReqDto registerCarReqDto);
 }

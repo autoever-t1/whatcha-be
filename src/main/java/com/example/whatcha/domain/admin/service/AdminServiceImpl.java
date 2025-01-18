@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.admin.service;
 
+import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.branchStore.dao.BranchStoreRepository;
 import com.example.whatcha.domain.branchStore.domain.BranchStore;
@@ -129,21 +130,20 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<GenderStatisticsDto> getGenderStatistics() {
-//        List<User> users = userRepository.findAll();
-//
-//        // 연령대별 사용자 수 계산
-//        Map<String, Long> genderStatistics = users.stream()
-//                .filter(user -> user.getGender() != null) // ageGroup이 null인 사용자는 제외
-//                .collect(Collectors.groupingBy(User::getGender, Collectors.counting()));
-//
-//        // Map 데이터를 DTO 리스트로 변환
-//        return genderStatistics.entrySet().stream()
-//                .map(entry -> GenderStatisticsDto.builder()
-//                        .gender(entry.getKey()) // ageGroup 값
-//                        .count(entry.getValue().intValue()) // 사용자 수
-//                        .build())
-//                .collect(Collectors.toList());
-        return null;
+        List<User> users = userRepository.findAll();
+
+        // 연령대별 사용자 수 계산
+        Map<String, Long> genderStatistics = users.stream()
+                .filter(user -> user.getGender() != null) // ageGroup이 null인 사용자는 제외
+                .collect(Collectors.groupingBy(User::getGender, Collectors.counting()));
+
+        // Map 데이터를 DTO 리스트로 변환
+        return genderStatistics.entrySet().stream()
+                .map(entry -> GenderStatisticsDto.builder()
+                        .gender(entry.getKey()) // ageGroup 값
+                        .count(entry.getValue().intValue()) // 사용자 수
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -237,4 +237,39 @@ public class AdminServiceImpl implements AdminService {
 
         return tradeHistoryList;
     }
+
+    @Override
+    public void registerCar(RegisterCarReqDto registerCarReqDto) {
+        Long branchStoreId = registerCarReqDto.getBranchStoreId();
+        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).get();
+
+        UsedCar usedCar = UsedCar.builder()
+                .driveType(registerCarReqDto.getDriveType())
+                .engineCapacity(registerCarReqDto.getEngineCapacity())
+                .exteriorColor(registerCarReqDto.getExteriorColor())
+                .fuelType(registerCarReqDto.getFuelType())
+                .goodsNo(registerCarReqDto.getGoodsNo())
+                .interiorColor(registerCarReqDto.getInteriorColor())
+                .likeCount(0)
+                .mainImage(registerCarReqDto.getMainImage())
+                .mileage(registerCarReqDto.getMileage())
+                .modelName(registerCarReqDto.getModelName())
+                .modelType(registerCarReqDto.getModelType())
+                .passengerCapacity(registerCarReqDto.getPassengerCapacity())
+                .price(registerCarReqDto.getPrice())
+                .registrationDate(registerCarReqDto.getRegistrationDate())
+                .status("구매 가능")
+                .transmission(registerCarReqDto.getTransmission())
+                .vhclRegNo(registerCarReqDto.getVhclRegNo())
+                .years(registerCarReqDto.getYears())
+                .model(registerCarReqDto.getModel())
+                .branchStore(branchStore)
+                .option(registerCarReqDto.getOption())
+                .model(registerCarReqDto.getModel())
+                .build();
+
+        usedCarRepository.save(usedCar);
+    }
+
+
 }
