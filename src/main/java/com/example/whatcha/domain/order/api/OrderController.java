@@ -76,9 +76,16 @@ public class OrderController {
     }
 
     //탁송 방법 선택 -> order 4단계
-    @PutMapping("/{orderId}/deliveryService")
+    @PostMapping("/{orderId}/deliveryService")
     public ResponseEntity<?> deliveryService(@PathVariable("orderId") Long orderId) {
         orderService.deliveryService(orderId);
+        return ResponseEntity.ok().build();
+    }
+
+    //배송완료
+    @PostMapping("/{orderId}/deliveryCompleted")
+    public ResponseEntity<?> deliveryCompleted(@PathVariable("orderId") Long orderId) {
+        orderService.deliveryCompleted(orderId);
         return ResponseEntity.ok().build();
     }
 
