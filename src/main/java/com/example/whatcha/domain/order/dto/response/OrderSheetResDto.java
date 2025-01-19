@@ -19,6 +19,10 @@ public class OrderSheetResDto {
 
     private String modelName;
 
+    private String mainImage;
+
+    private String mileage;
+
     private CouponResDto couponInfo;
 
     private OrderProcessResDto orderProcessInfo;

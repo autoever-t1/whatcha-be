@@ -290,6 +290,8 @@ public class OrderServiceImpl implements OrderService {
                 .modelName(usedCar.getModelName())
                 .registrationDate(usedCar.getRegistrationDate())
                 .vhclRegNo(usedCar.getVhclRegNo())
+                .mainImage(usedCar.getMainImage())
+                .mileage(usedCar.getMileage())
                 .couponInfo(couponResDto)
                 .orderInfo(orderResDto)
                 .orderProcessInfo(orderProcessResDto)
