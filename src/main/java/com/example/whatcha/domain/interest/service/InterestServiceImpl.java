@@ -39,19 +39,11 @@ public class InterestServiceImpl implements InterestService {
     @Transactional
     @Override
     public Page<CarPreviewResponseDto> getLikedCarList(Long userId, Pageable pageable) {
-        List<Object[]> likeCounts = likedCarRepository.findLikeCountsForUserLikedCars(userId);
 
-        Map<Long, Integer> likeCountMap = likeCounts.stream()
-                .collect(Collectors.toMap(
-                        result -> (Long) result[0],  // usedCarId
-                        result -> Math.toIntExact((Long) result[1])   // like count
-                ));
-
-        Page<LikedCar> likedCars = likedCarRepository.findByUserId(userId, pageable);
+        Page<LikedCar> likedCars = likedCarRepository.findByUserIdAndIsLikedTrue(userId, pageable);
 
         return likedCars.map(likedCar -> {
             UsedCar usedCar = likedCar.getUsedCar();
-            Integer likeCount = likeCountMap.getOrDefault(usedCar.getUsedCarId(), 0);
 
             return CarPreviewResponseDto.builder()
                     .usedCarId(usedCar.getUsedCarId())
@@ -61,7 +53,8 @@ public class InterestServiceImpl implements InterestService {
                     .mileage(usedCar.getMileage())
                     .vhclRegNo(usedCar.getVhclRegNo())
                     .price(usedCar.getPrice())
-                    .likeCount(likeCount)
+                    .likeCount(usedCar.getLikeCount())
+                    .isLiked(likedCar.isLiked())
                     .build();
         });
     }
