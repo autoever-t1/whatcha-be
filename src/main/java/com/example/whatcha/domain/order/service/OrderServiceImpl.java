@@ -287,6 +287,7 @@ public class OrderServiceImpl implements OrderService {
         // 최종 OrderSheetResDto 생성 및 반환
         return OrderSheetResDto.builder()
                 .price(usedCar.getPrice())
+                .modelName(usedCar.getModelName())
                 .registrationDate(usedCar.getRegistrationDate())
                 .vhclRegNo(usedCar.getVhclRegNo())
                 .couponInfo(couponResDto)
