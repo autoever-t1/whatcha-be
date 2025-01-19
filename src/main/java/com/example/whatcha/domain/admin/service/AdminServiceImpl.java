@@ -299,10 +299,9 @@ public class AdminServiceImpl implements AdminService {
         // 분류 기준 키워드
         List<String> keywords = Arrays.asList("G80", "그랜저", "베뉴", "GV80", "아반떼", "쏘나타", "싼타페", "팰리세이드", "GV70", "투싼", "코나", "아이오닉6", "G70", "캐스퍼");
 
-        // 모든 모델 조회
         List<Model> models = modelRepository.findAll();
 
-        // 키워드별 orderCount 합산
+        // 키워드별 orderCount
         Map<String, Integer> groupedStatistics = new HashMap<>();
         for (String keyword : keywords) {
             int totalOrderCount = models.stream()
@@ -314,7 +313,6 @@ public class AdminServiceImpl implements AdminService {
             }
         }
 
-        // Map 데이터를 DTO 리스트로 변환
         List<CarStatisticsByModelResDto> result = groupedStatistics.entrySet().stream()
                 .map(entry -> CarStatisticsByModelResDto.builder()
                         .modelName(entry.getKey())

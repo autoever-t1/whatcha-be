@@ -193,6 +193,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void deliveryCompleted(Long orderId) {
+        //orderId를 통해 OrderProcess를 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
+
+        orderProcess.deliveryCompleted();
+
+        //orderId로 Order찾기
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found for orderId: " + orderId));
+
+        UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId()).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + order.getUsedCarId()));
+
+        usedCar.changeStatus("판매 완료");
+    }
+
+    @Override
     public List<OrderListResDto> getgetAllOrders(String email) {
 
         User user = userRepository.findByEmail(email)
@@ -218,6 +235,8 @@ public class OrderServiceImpl implements OrderService {
                         process = 2; //계약서 작성중
                     } else if (!orderProcess.getDeliveryService()) {
                         process = 3; //수령방법 선택중
+                    } else if(orderProcess.getDeliveryCompleted()){
+                        process = 4; // 완료
                     }
 
                     return OrderListResDto.builder()

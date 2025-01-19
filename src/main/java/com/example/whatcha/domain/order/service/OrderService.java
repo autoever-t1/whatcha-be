@@ -25,6 +25,7 @@ public interface OrderService {
     void deliveryService(Long orderId);
 
     //배송완료
+    void deliveryCompleted(Long orderId);
 
     //주문 목록 조회하기
     List<OrderListResDto> getgetAllOrders(String email);
