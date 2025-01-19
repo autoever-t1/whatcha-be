@@ -15,22 +15,5 @@ public interface LikedCarRepository extends JpaRepository<LikedCar, Long> {
 
     Page<LikedCar> findByUserIdAndIsLikedTrue(Long userId, Pageable pageable);
 
-//    @Query("SELECT lc.usedCar.usedCarId, COUNT(lc) " +
-//            "FROM LikedCar lc " +
-//            "WHERE lc.usedCar.usedCarId IN (" +
-//            "  SELECT distinct subLc.usedCar.usedCarId " +
-//            "  FROM LikedCar subLc " +
-//            "  WHERE subLc.userId = :userId" +
-//            ") AND lc.isLiked = true " +
-//            "GROUP BY lc.usedCar.usedCarId")
-//    List<Object[]> findLikeCountsForUserLikedCars(@Param("userId") Long userId);
-
     Optional<LikedCar> findByUserIdAndUsedCar_UsedCarId(Long userId, Long usedCarId);
-
-    @Query("SELECT lc.usedCar " +
-            "FROM LikedCar lc " +
-            "WHERE lc.isLiked = true " +
-            "GROUP BY lc.usedCar " +
-            "ORDER BY COUNT(lc) DESC")
-    List<UsedCar> findTopLikedCars(Pageable pageable);
 }
