@@ -333,7 +333,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public PathInfoResDto getPathInfo(PathInfoReqDto request) throws Exception {
-        // 네이버 지도 post요청
+        // 네이버 지도 API 사용
         String url = String.format(
                 "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=%s,%s&goal=%s,%s",
                 request.getFromLng(),
@@ -342,7 +342,7 @@ public class OrderServiceImpl implements OrderService {
                 request.getToLat()
         );
 
-        // okhttpRequest이용 url, 헤더 설정
+        // HTTP 요청 생성하기 with okHttpRequest
         Request okHttpRequest = new Request.Builder()
                 .url(url)
                 .addHeader("x-ncp-apigw-api-key-id", clientId)
@@ -350,20 +350,20 @@ public class OrderServiceImpl implements OrderService {
                 .get()
                 .build();
 
+        // API 호출해서 response가져오기
         try (Response response = okHttpClient.newCall(okHttpRequest).execute()) {
             if (!response.isSuccessful()) {
-                throw new Exception("okHttpRequest요청 오류 " + response.code());
+                throw new Exception("Request failed with status code: " + response.code());
             }
 
             String responseBody = response.body() != null ? response.body().string() : null;
 
-            // json으로 반환
             if (responseBody != null) {
                 Gson gson = new Gson();
                 PathInfoResDto pathInfo = gson.fromJson(responseBody, PathInfoResDto.class);
                 return pathInfo;
             } else {
-                throw new Exception("body 없음");
+                throw new Exception("No response body");
             }
         }
     }
