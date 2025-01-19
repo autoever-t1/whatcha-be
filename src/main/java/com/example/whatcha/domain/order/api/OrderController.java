@@ -2,6 +2,7 @@ package com.example.whatcha.domain.order.api;
 
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.order.dto.request.DepositReqDto;
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
 import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.order.service.OrderService;
 import com.example.whatcha.global.security.util.SecurityUtils;
@@ -104,4 +105,15 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+
+    // order에서 지도 사용
+    @PostMapping("/path")
+    public ResponseEntity<?> getPathInfo(@RequestBody PathInfoReqDto request) {
+        try {
+            PathInfoResDto pathInfo = orderService.getPathInfo(request);
+            return ResponseEntity.ok(pathInfo);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("order 네이버 direction api 응답 오류: " + e.getMessage());
+        }
+    }
 }
