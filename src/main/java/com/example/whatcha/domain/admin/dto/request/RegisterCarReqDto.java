@@ -48,6 +48,6 @@ public class RegisterCarReqDto {
     private Option option;
 
     private Long branchStoreId;
-    //private BranchStore branchStore;
 
+    private Long colorId;
 }

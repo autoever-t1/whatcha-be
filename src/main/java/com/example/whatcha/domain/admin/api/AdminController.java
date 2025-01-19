@@ -124,6 +124,13 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    //매물 등록 후 푸시 알람 보내기
+    @PostMapping("/pushAlarm")
+    public ResponseEntity<?> pushAlarm(@RequestBody RegisterCarReqDto registerCarReqDto) {
+        adminService.pushAlarm(registerCarReqDto);
+        return ResponseEntity.ok().build();
+    }
+
     //관리자 날짜별 계약 건수
     @GetMapping("/order/statistics/day")
     public ResponseEntity<Map<String, Object>> getOrderStatisticsByDay() {

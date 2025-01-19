@@ -248,8 +248,8 @@ public class OrderServiceImpl implements OrderService {
                         process = 2; //계약서 작성중
                     } else if (!orderProcess.getDeliveryService()) {
                         process = 3; //수령방법 선택중
-                    } else if(orderProcess.getDeliveryCompleted()){
-                        process = 4; // 완료
+                    } else if(!orderProcess.getDeliveryCompleted()){
+                        process = 4; // 배송중
                     }
 
                     return OrderListResDto.builder()
