@@ -17,6 +17,8 @@ public class OrderSheetResDto {
 
     private String vhclRegNo;
 
+    private String modelName;
+
     private CouponResDto couponInfo;
 
     private OrderProcessResDto orderProcessInfo;
