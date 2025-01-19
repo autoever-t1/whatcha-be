@@ -13,11 +13,12 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CarPreviewResponseDto {
     private Long usedCarId;
-    private String thumbnailUrl;
+    private String mainImage;
     private String modelName;
     private String registrationDate;
     private String mileage;
     private String vhclRegNo;
     private int price;
     private Integer likeCount;
+    private Boolean isLiked;
 }
