@@ -10,10 +10,14 @@ import com.example.whatcha.domain.coupon.domain.Coupon;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import com.example.whatcha.domain.coupon.exception.CouponNotFoundException;
+import com.example.whatcha.domain.fcm.service.FcmService;
 import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
+import com.example.whatcha.domain.usedCar.dao.ColorRepository;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
+import com.example.whatcha.domain.usedCar.dao.OptionRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
+import com.example.whatcha.domain.usedCar.domain.Color;
 import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
@@ -21,15 +25,18 @@ import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import com.example.whatcha.domain.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -40,6 +47,14 @@ public class AdminServiceImpl implements AdminService {
     private final OrderRepository orderRepository;
     private final UsedCarRepository usedCarRepository;
     private final ModelRepository modelRepository;
+    private final FcmService fcmService;
+    private final ColorRepository colorRepository;
+
+    private static final List<String> KEYWORDS = Arrays.asList(
+            "G80", "그랜저", "베뉴", "GV80", "아반떼", "쏘나타", "싼타페", "팰리세이드",
+            "GV70", "투싼", "코나", "아이오닉6", "G70", "캐스퍼"
+    );
+    private final OptionRepository optionRepository;
 
     @Override
     public void addAdminCoupon(CouponReqDto couponReqDto) {
@@ -100,7 +115,6 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserInfoResDto> getAllUser() {
-        // User 엔티티 전체 조회
         List<User> users = userRepository.findAll();
 
         return users.stream()
@@ -245,7 +259,13 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void registerCar(RegisterCarReqDto registerCarReqDto) {
         Long branchStoreId = registerCarReqDto.getBranchStoreId();
-        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).get();
+
+        // 지점 찾아서 보유 매물 1증가
+        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).orElseThrow();
+        branchStore.incrementOwnedCarCount();
+
+        Long colorId = registerCarReqDto.getColorId();
+        Color color = colorRepository.findById(colorId).orElseThrow();
 
         UsedCar usedCar = UsedCar.builder()
                 .driveType(registerCarReqDto.getDriveType())
@@ -270,9 +290,63 @@ public class AdminServiceImpl implements AdminService {
                 .branchStore(branchStore)
                 .option(registerCarReqDto.getOption())
                 .model(registerCarReqDto.getModel())
+                .color(color)
                 .build();
 
+        optionRepository.save(registerCarReqDto.getOption());
+        modelRepository.save(registerCarReqDto.getModel());
         usedCarRepository.save(usedCar);
+    }
+
+    @Override
+    public String pushAlarm(RegisterCarReqDto registerCarReqDto) {
+        List<User> users = userRepository.findAll();
+
+        Integer price = registerCarReqDto.getPrice();
+        String modelName = registerCarReqDto.getModelName();
+
+        List<User> isFilteredUsers = users.stream()
+                .filter(user -> Filtering(user, price, modelName))
+                .collect(Collectors.toList());
+
+        // 리스트가 비어 있으면 null 반환
+        if (isFilteredUsers.isEmpty()) {
+            System.out.printf("조건에 맞는 매물 아님");
+            return null; // 비어있으면 null 반환
+        }
+
+        // 비어 있지 않으면 푸시 알람 전송
+        System.out.println("Filtered Users: " + isFilteredUsers.get(0).getName());
+
+        for (User user : isFilteredUsers) {
+            sendPushNotification(user);
+        }
+
+        return "푸시 알람 성공";
+    }
+
+
+    private boolean Filtering(User user, Integer productPrice, String productName) {
+        // 예산 범위 확인
+        boolean isWithinBudget = productPrice >= user.getBudgetMin() && productPrice <= user.getBudgetMax();
+
+        // 선호 모델 확인
+        boolean isPreferredModel = KEYWORDS.stream().anyMatch(productName::contains);
+
+        // 예산 범위와 선호 모델이 모두 맞으면 true 반환
+        return isWithinBudget && isPreferredModel;
+    }
+
+    private void sendPushNotification(User user) {
+        // FCM 푸시 알림 전송
+        String appToken = user.getAppToken();
+        String title = "조건에 맞는 새로운 매물 등록!";
+        String body = user.getName() + "님, 새로운 매물이 등록되었습니다. 확인해보세요!";
+        try {
+            fcmService.sendMessageTo(appToken, title, body);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -296,14 +370,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<CarStatisticsByModelResDto> getCarStatisticsByModel() {
-        // 분류 기준 키워드
-        List<String> keywords = Arrays.asList("G80", "그랜저", "베뉴", "GV80", "아반떼", "쏘나타", "싼타페", "팰리세이드", "GV70", "투싼", "코나", "아이오닉6", "G70", "캐스퍼");
-
         List<Model> models = modelRepository.findAll();
 
         // 키워드별 orderCount
         Map<String, Integer> groupedStatistics = new HashMap<>();
-        for (String keyword : keywords) {
+        for (String keyword : KEYWORDS) {
             int totalOrderCount = models.stream()
                     .filter(model -> model.getModelName().contains(keyword)) // 키워드 포함 여부 확인
                     .mapToInt(Model::getOrderCount) // orderCount 추출
@@ -322,6 +393,4 @@ public class AdminServiceImpl implements AdminService {
 
         return result;
     }
-
-
 }
