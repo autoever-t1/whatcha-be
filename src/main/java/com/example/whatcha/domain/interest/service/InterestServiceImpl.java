@@ -10,7 +10,6 @@ import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
-import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -56,7 +55,7 @@ public class InterestServiceImpl implements InterestService {
 
             return CarPreviewResponseDto.builder()
                     .usedCarId(usedCar.getUsedCarId())
-                    .thumbnailUrl(usedCar.getMainImage())
+                    .mainImage(usedCar.getMainImage())
                     .modelName(usedCar.getModelName())
                     .registrationDate(usedCar.getRegistrationDate())
                     .mileage(usedCar.getMileage())
@@ -74,9 +73,19 @@ public class InterestServiceImpl implements InterestService {
 
         if (likedCarOptional.isPresent()) {
             LikedCar likedCar = likedCarOptional.get();
+            boolean newLikeStatus = !likedCar.isLiked();
             // isLiked 값 토글
-            likedCar.updateLiked(!likedCar.isLiked());
-            return likedCar.isLiked(); // 변경된 상태 반환
+            likedCar.updateLiked(newLikeStatus);
+
+            // likeCount 업데이트
+            UsedCar usedCar = likedCar.getUsedCar();
+            if (newLikeStatus) {
+                usedCar.incrementLikeCount();
+            } else {
+                usedCar.decrementLikeCount();
+            }
+            return newLikeStatus; // 변경된 상태 반환
+
         } else {
             UsedCar usedCar = usedCarRepository.findById(usedCarId)
                     .orElseThrow(() -> new EntityNotFoundException("UsedCar not found with id: " + usedCarId));
@@ -87,6 +96,7 @@ public class InterestServiceImpl implements InterestService {
                     .isLiked(true)
                     .build();
             likedCarRepository.save(newLikedCar);
+            usedCar.incrementLikeCount();
             return true;
         }
     }
@@ -148,7 +158,7 @@ public class InterestServiceImpl implements InterestService {
         return recommendCars.stream()
                 .map(item -> CarPreviewResponseDto.builder()
                         .usedCarId(item.getUsedCarId())
-                        .thumbnailUrl(item.getMainImage())
+                        .mainImage(item.getMainImage())
                         .modelName(item.getModelName())
                         .registrationDate(item.getRegistrationDate())
                         .mileage(item.getMileage())
@@ -191,7 +201,7 @@ public class InterestServiceImpl implements InterestService {
 
         return topLikedCars.stream().map(usedCar -> CarPreviewResponseDto.builder()
                 .usedCarId(usedCar.getUsedCarId())
-                .thumbnailUrl(usedCar.getMainImage())
+                .mainImage(usedCar.getMainImage())
                 .modelName(usedCar.getModelName())
                 .registrationDate(usedCar.getRegistrationDate())
                 .mileage(usedCar.getMileage())

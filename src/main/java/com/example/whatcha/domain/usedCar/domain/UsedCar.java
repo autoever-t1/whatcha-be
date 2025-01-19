@@ -119,8 +119,14 @@ public class UsedCar extends BaseEntity {
         this.option = option;
     }
 
-    public void updateLikeCount() {
+    public void incrementLikeCount() {
         this.likeCount += 1;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount -= 1;
+        }
     }
 
     public UsedCar changeStatus(String newStatus) {
