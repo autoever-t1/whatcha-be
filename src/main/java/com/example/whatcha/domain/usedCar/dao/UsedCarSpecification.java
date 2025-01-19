@@ -2,9 +2,9 @@ package com.example.whatcha.domain.usedCar.dao;
 
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import org.springframework.data.jpa.domain.Specification;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Join;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +13,7 @@ public class UsedCarSpecification {
     public Specification<UsedCar> buildSpecification(
             List<Long> colorIds,
             List<String> modelTypes,
+            List<String> modelNames,
             Integer mileageMin,
             Integer mileageMax,
             Integer yearMin,
@@ -54,6 +55,14 @@ public class UsedCarSpecification {
                 predicates.add(criteriaBuilder.or(modelTypePredicates.toArray(new Predicate[0])));
             }
 
+            // 모델 이름 필터링
+            if (modelNames != null && !modelNames.isEmpty()) {
+                List<Predicate> modelNamePredicates = new ArrayList<>();
+                for (String modelName : modelNames) {
+                    modelNamePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("modelName")), "%" + modelName.toLowerCase() + "%"));
+                }
+                predicates.add(criteriaBuilder.or(modelNamePredicates.toArray(new Predicate[0])));
+            }
 
             // 주행거리 필터링
             if (mileageMin != null) {
