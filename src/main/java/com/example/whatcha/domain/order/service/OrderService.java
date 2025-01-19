@@ -1,5 +1,6 @@
 package com.example.whatcha.domain.order.service;
 
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
 import com.example.whatcha.domain.order.dto.response.*;
 
 import java.util.List;
@@ -32,4 +33,7 @@ public interface OrderService {
 
     //주문서 보기
     OrderSheetResDto getOrderSheet(Long orderId);
+
+    //order naver지도 api사용
+    PathInfoResDto getPathInfo(PathInfoReqDto request) throws Exception;
 }

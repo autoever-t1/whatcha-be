@@ -12,6 +12,7 @@ import com.example.whatcha.domain.order.dao.OrderProcessRepository;
 import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.order.domain.OrderProcess;
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
 import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
@@ -19,8 +20,13 @@ import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
-import com.example.whatcha.global.security.util.SecurityUtils;
+import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -39,6 +45,13 @@ public class OrderServiceImpl implements OrderService {
     private final UsedCarRepository usedCarRepository;
     private final BranchStoreRepository branchStoreRepository;
     private final ModelRepository modelRepository;
+    private final OkHttpClient okHttpClient;
+
+    @Value("${secret.naver.clientId}")
+    private String clientId;
+
+    @Value("${secret.naver.clientSecret}")
+    private String clientSecret;
 
     @Override
     public OrderProcessResDto getOrderProcess(Long orderId) {
@@ -318,5 +331,40 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Override
+    public PathInfoResDto getPathInfo(PathInfoReqDto request) throws Exception {
+        // 네이버 지도 post요청
+        String url = String.format(
+                "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=%s,%s&goal=%s,%s",
+                request.getFromLng(),
+                request.getFromLat(),
+                request.getToLng(),
+                request.getToLat()
+        );
 
+        // okhttpRequest이용 url, 헤더 설정
+        Request okHttpRequest = new Request.Builder()
+                .url(url)
+                .addHeader("x-ncp-apigw-api-key-id", clientId)
+                .addHeader("x-ncp-apigw-api-key", clientSecret)
+                .get()
+                .build();
+
+        try (Response response = okHttpClient.newCall(okHttpRequest).execute()) {
+            if (!response.isSuccessful()) {
+                throw new Exception("okHttpRequest요청 오류 " + response.code());
+            }
+
+            String responseBody = response.body() != null ? response.body().string() : null;
+
+            // json으로 반환
+            if (responseBody != null) {
+                Gson gson = new Gson();
+                PathInfoResDto pathInfo = gson.fromJson(responseBody, PathInfoResDto.class);
+                return pathInfo;
+            } else {
+                throw new Exception("body 없음");
+            }
+        }
+    }
 }
