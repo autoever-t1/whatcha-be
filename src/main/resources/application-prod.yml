@@ -39,6 +39,6 @@ spring:
 
 jwt:
   refresh-expired-in: '1296000000'  # Refresh Token (15)
-  access-expired-in: '3600000' # Access Token (1)
+  access-expired-in: '18000000' # Access Token (5)
   cookieName: refreshToken
   secret: ${secret-jwt.secret}
