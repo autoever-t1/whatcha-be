@@ -303,7 +303,7 @@ public class AdminServiceImpl implements AdminService {
             model = Model.builder()
                     .modelName(modelName)
                     .modelType(registerCarReqDto.getModelType())
-                    .factoryPrice(registerCarReqDto.getPrice())
+                    .factoryPrice(registerCarReqDto.getModel().getFactoryPrice())
                     .build();
             modelRepository.save(model);
         } else {
