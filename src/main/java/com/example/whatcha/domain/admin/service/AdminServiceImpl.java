@@ -58,6 +58,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void addAdminCoupon(CouponReqDto couponReqDto) {
+        //랜덤으로 쿠폰 아이디 만들기
         String randomCouponCode = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
         Coupon coupon = Coupon.builder()
@@ -260,13 +261,25 @@ public class AdminServiceImpl implements AdminService {
     public void registerCar(RegisterCarReqDto registerCarReqDto) {
         Long branchStoreId = registerCarReqDto.getBranchStoreId();
 
-        // 지점 찾아서 보유 매물 1증가
-        BranchStore branchStore = branchStoreRepository.findById(branchStoreId).orElseThrow();
+        // 지점 찾아서 보유 매물 1 증가
+        BranchStore branchStore = branchStoreRepository.findById(branchStoreId)
+                .orElseThrow(() -> new IllegalArgumentException("Branch store not found with ID: " + branchStoreId));
         branchStore.incrementOwnedCarCount();
 
         Long colorId = registerCarReqDto.getColorId();
-        Color color = colorRepository.findById(colorId).orElseThrow();
+        Color color = colorRepository.findById(colorId)
+                .orElseThrow(() -> new IllegalArgumentException("Color not found with ID: " + colorId));
 
+        // modelName으로 Model 찾기, 없으면 저장 후 반환
+        String modelName = registerCarReqDto.getModelName();
+        Model model = modelRepository.findByModelName(modelName)
+                .orElseGet(() -> modelRepository.save(Model.builder()
+                        .modelName(modelName)
+                        .modelType(registerCarReqDto.getModelType())
+                        .factoryPrice(registerCarReqDto.getPrice())
+                        .build()));
+
+        // UsedCar 객체 생성
         UsedCar usedCar = UsedCar.builder()
                 .driveType(registerCarReqDto.getDriveType())
                 .engineCapacity(registerCarReqDto.getEngineCapacity())
@@ -277,26 +290,26 @@ public class AdminServiceImpl implements AdminService {
                 .likeCount(0)
                 .mainImage(registerCarReqDto.getMainImage())
                 .mileage(registerCarReqDto.getMileage())
-                .modelName(registerCarReqDto.getModelName())
+                .modelName(modelName)
                 .modelType(registerCarReqDto.getModelType())
                 .passengerCapacity(registerCarReqDto.getPassengerCapacity())
                 .price(registerCarReqDto.getPrice())
                 .registrationDate(registerCarReqDto.getRegistrationDate())
-                .status("구매 가능")
+                .status("구매 가능") // 추후 ENUM이나 상수로 관리 가능
                 .transmission(registerCarReqDto.getTransmission())
                 .vhclRegNo(registerCarReqDto.getVhclRegNo())
                 .years(registerCarReqDto.getYears())
-                .model(registerCarReqDto.getModel())
+                .model(model)
                 .branchStore(branchStore)
                 .option(registerCarReqDto.getOption())
-                .model(registerCarReqDto.getModel())
                 .color(color)
                 .build();
 
-        optionRepository.save(registerCarReqDto.getOption());
-        modelRepository.save(registerCarReqDto.getModel());
+        // UsedCar 저장
         usedCarRepository.save(usedCar);
     }
+
+
 
     @Override
     public String pushAlarm(RegisterCarReqDto registerCarReqDto) {

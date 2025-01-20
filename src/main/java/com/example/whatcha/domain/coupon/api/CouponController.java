@@ -28,8 +28,6 @@ public class CouponController {
     @PostMapping
     public ResponseEntity<CouponResDto> addCoupon(@RequestBody Map<String, String> couponMap) {
         try{
-            //userId로 대체하기
-            //accessToken에서 userEmail뽑아내기
             String email = SecurityUtils.getLoginUserEmail();
 
             String couponCode = couponMap.get("couponCode");

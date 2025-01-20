@@ -80,7 +80,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             "/api/admin/tradeHistory",
             "/api/admin/order/statistics/day",
             "/api/admin/statistics/model",
-            "/api/admin/pushAlarm"
+            "/api/admin/pushAlarm",
+            "/api/admin/register"
     };
 
     /**
