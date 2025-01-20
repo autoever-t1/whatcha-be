@@ -303,14 +303,13 @@ public class AdminServiceImpl implements AdminService {
             model = Model.builder()
                     .modelName(modelName)
                     .modelType(registerCarReqDto.getModelType())
-                    .factoryPrice(registerCarReqDto.getPrice())
+                    .factoryPrice(registerCarReqDto.getModel().getFactoryPrice())
                     .build();
             modelRepository.save(model);
         } else {
             // 첫 번째 모델을 사용
             model = existingModels.get(0);
         }
-
 
         // UsedCar 객체 생성
         UsedCar usedCar = UsedCar.builder()
@@ -393,7 +392,7 @@ public class AdminServiceImpl implements AdminService {
         // FCM 푸시 알림 전송
         String appToken = user.getAppToken();
         String title = "🚨 새로운 매물이 등록되었습니다! 지금 바로 확인하세요!";
-        String body = user.getName() + "님, 새로운 매물이 등록되었습니다.\n" +
+        String body = user.getName() + "님, 새로운 매물이 등록되었습니다." +
                 "모델명: " + modelName + ", 가격: " + price + "원. 확인해보세요!";
         try {
             fcmService.sendMessageTo(appToken, title, body, modelName, price);
