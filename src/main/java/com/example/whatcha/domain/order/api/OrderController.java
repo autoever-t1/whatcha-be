@@ -58,7 +58,7 @@ public class OrderController {
             DepositResDto response = orderService.payDeposit(email, request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계약금 납부하기 오류");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계약금 납부하기 오류!!!!");
         }
     }
 
