@@ -10,7 +10,6 @@ import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
-import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,29 +39,22 @@ public class InterestServiceImpl implements InterestService {
     @Transactional
     @Override
     public Page<CarPreviewResponseDto> getLikedCarList(Long userId, Pageable pageable) {
-        List<Object[]> likeCounts = likedCarRepository.findLikeCountsForUserLikedCars(userId);
 
-        Map<Long, Integer> likeCountMap = likeCounts.stream()
-                .collect(Collectors.toMap(
-                        result -> (Long) result[0],  // usedCarId
-                        result -> Math.toIntExact((Long) result[1])   // like count
-                ));
-
-        Page<LikedCar> likedCars = likedCarRepository.findByUserId(userId, pageable);
+        Page<LikedCar> likedCars = likedCarRepository.findByUserIdAndIsLikedTrue(userId, pageable);
 
         return likedCars.map(likedCar -> {
             UsedCar usedCar = likedCar.getUsedCar();
-            Integer likeCount = likeCountMap.getOrDefault(usedCar.getUsedCarId(), 0);
 
             return CarPreviewResponseDto.builder()
                     .usedCarId(usedCar.getUsedCarId())
-                    .thumbnailUrl(usedCar.getMainImage())
+                    .mainImage(usedCar.getMainImage())
                     .modelName(usedCar.getModelName())
                     .registrationDate(usedCar.getRegistrationDate())
                     .mileage(usedCar.getMileage())
                     .vhclRegNo(usedCar.getVhclRegNo())
                     .price(usedCar.getPrice())
-                    .likeCount(likeCount)
+                    .likeCount(usedCar.getLikeCount())
+                    .isLiked(likedCar.isLiked())
                     .build();
         });
     }
@@ -74,9 +66,19 @@ public class InterestServiceImpl implements InterestService {
 
         if (likedCarOptional.isPresent()) {
             LikedCar likedCar = likedCarOptional.get();
+            boolean newLikeStatus = !likedCar.isLiked();
             // isLiked 값 토글
-            likedCar.updateLiked(!likedCar.isLiked());
-            return likedCar.isLiked(); // 변경된 상태 반환
+            likedCar.updateLiked(newLikeStatus);
+
+            // likeCount 업데이트
+            UsedCar usedCar = likedCar.getUsedCar();
+            if (newLikeStatus) {
+                usedCar.incrementLikeCount();
+            } else {
+                usedCar.decrementLikeCount();
+            }
+            return newLikeStatus; // 변경된 상태 반환
+
         } else {
             UsedCar usedCar = usedCarRepository.findById(usedCarId)
                     .orElseThrow(() -> new EntityNotFoundException("UsedCar not found with id: " + usedCarId));
@@ -87,6 +89,7 @@ public class InterestServiceImpl implements InterestService {
                     .isLiked(true)
                     .build();
             likedCarRepository.save(newLikedCar);
+            usedCar.incrementLikeCount();
             return true;
         }
     }
@@ -120,7 +123,7 @@ public class InterestServiceImpl implements InterestService {
 
         // 빈 리스트 생성
         List<UsedCar> recommendCars = new ArrayList<>();
-
+        System.out.println(1);
         // 중고차 추천 데이터 조회
         if (user.getPreferenceModel1() != null || user.getPreferenceModel2() != null || user.getPreferenceModel3() != null) {
             recommendCars = usedCarRepository.findRecommendedCars(
@@ -131,7 +134,7 @@ public class InterestServiceImpl implements InterestService {
                     user.getPreferenceModel3(),
                     pageable);
         }
-
+        System.out.println(2);
         if (recommendCars.size() < limit) {
             int remaining = limit - recommendCars.size();
             List<Long> excludeIds = recommendCars.stream()
@@ -144,11 +147,11 @@ public class InterestServiceImpl implements InterestService {
 
             recommendCars.addAll(additionalCars);
         }
-
+        System.out.println(3);
         return recommendCars.stream()
                 .map(item -> CarPreviewResponseDto.builder()
                         .usedCarId(item.getUsedCarId())
-                        .thumbnailUrl(item.getMainImage())
+                        .mainImage(item.getMainImage())
                         .modelName(item.getModelName())
                         .registrationDate(item.getRegistrationDate())
                         .mileage(item.getMileage())
@@ -159,39 +162,32 @@ public class InterestServiceImpl implements InterestService {
 
 
     @Override
-    public UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate) {
-        if (userCarAlertRepository.existsByUserIdAndModel_ModelId(userId, modelId)) {
-            throw new IllegalArgumentException("Alert already exists for this user and model.");
-        }
+    public UserCarAlert addUserCarAlert(Long userId, String modelName, LocalDate alertExpirationDate) {
+        Model model = modelRepository.findByModelName(modelName)
+                .orElseThrow(() -> new EntityNotFoundException("Model not found with name: " + modelName));
 
-        Model model = modelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException("Model not found with id: " + modelId));
-
-        UserCarAlert userCarAlert = UserCarAlert.builder()
-                .userId(userId)
-                .model(model)
-                .alertExpirationDate(alertExpirationDate)
-                .build();
-
-        return userCarAlertRepository.save(userCarAlert);
+        return userCarAlertRepository.findByUserIdAndModel(userId, model)
+                .map(alert -> {
+                    alert.updateAlertExpirationDate(alertExpirationDate); // 만료일 업데이트
+                    return userCarAlertRepository.save(alert); // 업데이트 후 저장
+                })
+                .orElseGet(() -> userCarAlertRepository.save( // 새로운 알림 생성 및 저장
+                        UserCarAlert.builder()
+                                .userId(userId)
+                                .model(model)
+                                .alertExpirationDate(alertExpirationDate)
+                                .build()
+                ));
     }
 
     @Override
     public List<CarPreviewResponseDto> getMostLikedCarList(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        List<UsedCar> topLikedCars = likedCarRepository.findTopLikedCars(pageable);
-
-        int remaining = limit - topLikedCars.size();
-
-        if (remaining > 0) {
-            Pageable randomPageable = PageRequest.of(0, remaining);
-            List<UsedCar> randomCars = usedCarRepository.findAdditionalCarsRandom(randomPageable);
-
-            topLikedCars.addAll(randomCars);
-        }
+        List<UsedCar> topLikedCars = usedCarRepository.findByStatusOrderByLikeCountDesc("구매 가능", pageable);
 
         return topLikedCars.stream().map(usedCar -> CarPreviewResponseDto.builder()
                 .usedCarId(usedCar.getUsedCarId())
-                .thumbnailUrl(usedCar.getMainImage())
+                .mainImage(usedCar.getMainImage())
                 .modelName(usedCar.getModelName())
                 .registrationDate(usedCar.getRegistrationDate())
                 .mileage(usedCar.getMileage())

@@ -30,4 +30,8 @@ public class UserCarAlert extends BaseEntity {
     private Model model;
 
     private LocalDate alertExpirationDate;
+
+    public void updateAlertExpirationDate(LocalDate alertExpirationDate) {
+        this.alertExpirationDate = alertExpirationDate;
+    }
 }
