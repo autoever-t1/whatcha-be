@@ -32,7 +32,7 @@ public class UsedCar extends BaseEntity {
     @JoinColumn(name = "branch_store_id", nullable = false)
     private BranchStore branchStore;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "option_id", nullable = true)
     private Option option;
 
@@ -152,6 +152,8 @@ public class UsedCar extends BaseEntity {
                 .transmission(this.transmission)
                 .goodsNo(this.goodsNo)
                 .mainImage(this.mainImage)
+                .option(this.option)
+                .likeCount(this.likeCount)
                 .build();
     }
 }

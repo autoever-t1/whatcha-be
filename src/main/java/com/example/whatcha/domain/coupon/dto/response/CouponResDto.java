@@ -14,11 +14,9 @@ public class CouponResDto {
 
     private String couponName;
 
-    private int discountPercentage;
+    private Integer discountPercentage;
 
-    private int discountAmount;
-
-    private int maxDiscountAmount;
+    private Integer maxDiscountAmount;
 
     private LocalDate expiryDate;
 
