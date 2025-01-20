@@ -22,7 +22,7 @@ public interface InterestService {
 
     List<CarPreviewResponseDto> getRecommendedCarList(User user, int limit);
 
-    UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate);
+    UserCarAlert addUserCarAlert(Long userId, String modelName, LocalDate alertExpirationDate);
 
     List<CarPreviewResponseDto> getMostLikedCarList(int limit);
 }
