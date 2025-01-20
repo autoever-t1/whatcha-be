@@ -57,11 +57,11 @@ public class InterestController {
         return ResponseEntity.ok(recommendCars);
     }
 
-    @PostMapping("/alert-cars/{modelId}")
-    public ResponseEntity<?> addUserCarAlert(@PathVariable Long modelId, @RequestBody UserCarAlertRequestDto alertRequestDto) {
+    @PostMapping("/alert-cars")
+    public ResponseEntity<?> addUserCarAlert(@RequestBody UserCarAlertRequestDto alertRequestDto) {
         try {
             Long userId = securityUtils.getLoginUserId();
-            UserCarAlert userCarAlert = interestService.addUserCarAlert(userId, modelId, alertRequestDto.getAlertExpirationDate());
+            UserCarAlert userCarAlert = interestService.addUserCarAlert(userId, alertRequestDto.getModelName(), alertRequestDto.getAlertExpirationDate());
             return ResponseEntity.status(HttpStatus.CREATED).body(userCarAlert);
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());

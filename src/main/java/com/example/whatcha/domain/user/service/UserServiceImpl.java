@@ -76,9 +76,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthenticatedResDto signUp(SignUpReqDto signUpReqDto) {
-        if (userRepository.findByEmail(signUpReqDto.getEmail()) != null) {
-            throw new InvalidSignUpException(UserExceptionMessage.SIGN_UP_NOT_VALID.getMessage());
-        }
 
         User user = userRepository.save(signUpReqDto.dtoToEntity());
 

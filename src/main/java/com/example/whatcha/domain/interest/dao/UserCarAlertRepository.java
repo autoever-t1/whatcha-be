@@ -10,8 +10,13 @@ import java.util.Optional;
 public interface UserCarAlertRepository extends JpaRepository<UserCarAlert, Long> {
 
     List<UserCarAlert> findAllByUserId(Long userId);
+  
     void deleteByUserIdAndModel_ModelId(Long userId, Long modelId);
+  
     boolean existsByUserIdAndModel_ModelId(Long userId, Long modelId);
 
     Optional<UserCarAlert> findByUserId(Long userId);
+
+    Optional<UserCarAlert> findByUserIdAndModel(Long userId, Model model);
+
 }

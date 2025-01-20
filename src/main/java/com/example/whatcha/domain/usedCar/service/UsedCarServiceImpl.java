@@ -1,10 +1,13 @@
 package com.example.whatcha.domain.usedCar.service;
 
 import com.example.whatcha.domain.interest.dao.LikedCarRepository;
+import com.example.whatcha.domain.usedCar.dao.UsedCarImageRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarSpecification;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
+import com.example.whatcha.domain.usedCar.domain.UsedCarImage;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarImageResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import com.example.whatcha.domain.usedCar.exception.UsedCarNotFoundException;
@@ -36,6 +39,7 @@ public class UsedCarServiceImpl implements UsedCarService {
     private final UsedCarSpecification usedCarSpecification;
     private final UserRepository userRepository;
     private final LikedCarRepository likedCarRepository;
+    private final UsedCarImageRepository usedCarImageRepository;
     private final SecurityUtils securityUtils;
 
     private User getLoginUser() {
@@ -114,5 +118,15 @@ public class UsedCarServiceImpl implements UsedCarService {
                 .mileage(usedCar.getMileage())
                 .price(usedCar.getPrice())
                 .build();
+    }
+
+
+    @Override
+    public List<UsedCarImageResDto> findAllImageByUsedCar(Long usedCarId) {
+        List<UsedCarImage> usedCarImages = usedCarImageRepository.findByUsedCar_UsedCarId(usedCarId);
+
+        return usedCarImages.stream()
+                .map(UsedCarImageResDto::entityToResDto)
+                .collect(Collectors.toList());
     }
 }

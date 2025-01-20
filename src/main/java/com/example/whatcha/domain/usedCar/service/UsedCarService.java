@@ -1,6 +1,7 @@
 package com.example.whatcha.domain.usedCar.service;
 
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarImageResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import org.springframework.data.domain.Page;
@@ -28,4 +29,6 @@ public interface UsedCarService {
                                            int page);
 
     UsedCarOrderInfoResDto findOneUsedCarOrderInfo(Long usedCarId);
+
+    List<UsedCarImageResDto> findAllImageByUsedCar(Long usedCarId);
 }

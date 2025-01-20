@@ -12,5 +12,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class UserCarAlertRequestDto {
+    private String modelName;
     private LocalDate alertExpirationDate;
 }
