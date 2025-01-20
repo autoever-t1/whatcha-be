@@ -36,7 +36,7 @@ jobs:
       - name: Create worryboxFirebaseKey.json
         run: |
           cd ./src/main/resources
-          echo "${{ secrets.FIREBASE_KEY }}" > worryboxFirebaseKey.json
+          echo '${{ secrets.FIREBASE_KEY }}' > worryboxFirebaseKey.json
         shell: bash
 
       - name: Build with Gradle
@@ -79,6 +79,7 @@ jobs:
               -e AWS_REGION=${{ secrets.AWS_REGION }} \
               -e spring.redis.password=${{ secrets.REDIS_PASSWORD }} \
               -e jwt.secret=${{ secrets.JWT_SECRET }} \
+              -e firebase.config.path=/app/worryboxFirebaseKey.json \
               ${{ secrets.DOCKER_USERNAME }}/whatcha:latest
 
             # Remove unused images to free space
