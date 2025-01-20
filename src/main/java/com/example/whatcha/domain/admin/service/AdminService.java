@@ -61,4 +61,9 @@ public interface AdminService {
     //관리자 차종별 판매 비율보기
     List<CarStatisticsByModelResDto> getCarStatisticsByModel();
 
+    //관리자 대시보드 스케쥴러로 날짜와 함께 저장하기
+    void dashBoardRatio();
+
+    //관리자 대시보드 비율 확인하기
+    List<DashBoardRatioResDto> getDashBoardRatio();
 }

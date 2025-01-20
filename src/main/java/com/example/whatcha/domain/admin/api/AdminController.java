@@ -153,5 +153,12 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    //관리자 대시보드 비율 확인
+    @GetMapping("/dashBoard/ratio")
+    public ResponseEntity<List<DashBoardRatioResDto>> dashBoardRatio() {
+        List<DashBoardRatioResDto> response = adminService.getDashBoardRatio();
+        return ResponseEntity.ok(response);
+    }
+
 }
 
