@@ -76,17 +76,10 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    //탁송 방법 선택 -> order 4단계
+    //탁송 방법 선택 -> order 4단계 & 배송완료
     @PostMapping("/{orderId}/deliveryService")
     public ResponseEntity<?> deliveryService(@PathVariable("orderId") Long orderId) {
         orderService.deliveryService(orderId);
-        return ResponseEntity.ok().build();
-    }
-
-    //배송완료
-    @PostMapping("/{orderId}/deliveryCompleted")
-    public ResponseEntity<?> deliveryCompleted(@PathVariable("orderId") Long orderId) {
-        orderService.deliveryCompleted(orderId);
         return ResponseEntity.ok().build();
     }
 
@@ -101,7 +94,7 @@ public class OrderController {
     @GetMapping("/orderList")
     public ResponseEntity<List<OrderListResDto>> getAllOrders() {
         String email = SecurityUtils.getLoginUserEmail();
-        List<OrderListResDto> response = orderService.getgetAllOrders(email);
+        List<OrderListResDto> response = orderService.getAllOrders(email);
         return ResponseEntity.ok(response);
     }
 

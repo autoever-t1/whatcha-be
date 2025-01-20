@@ -22,14 +22,11 @@ public interface OrderService {
     //계약서 서명하기
     void writeContract(Long orderId);
 
-    //수령방법 선택하기
+    //수령방법 선택하기 & 배송완료
     void deliveryService(Long orderId);
 
-    //배송완료
-    void deliveryCompleted(Long orderId);
-
     //주문 목록 조회하기
-    List<OrderListResDto> getgetAllOrders(String email);
+    List<OrderListResDto> getAllOrders(String email);
 
     //주문서 보기
     OrderSheetResDto getOrderSheet(Long orderId);

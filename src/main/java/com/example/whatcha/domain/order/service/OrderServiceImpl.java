@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // usedCar status값 바꿔주기
-        UsedCar updatedUsedCar = usedCar.changeStatus("판매중");
+        UsedCar updatedUsedCar = usedCar.changeStatus("거래중");
         usedCarRepository.save(updatedUsedCar);
 
         // 해당 branch ownedCarCount -1 해주기
@@ -202,28 +202,17 @@ public class OrderServiceImpl implements OrderService {
         OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
 
-        orderProcess.enableDeliveryService();
-    }
-
-    @Override
-    public void deliveryCompleted(Long orderId) {
-        //orderId를 통해 OrderProcess를 조회
-        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
-
-        orderProcess.deliveryCompleted();
-
-        //orderId로 Order찾기
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found for orderId: " + orderId));
 
         UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId()).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + order.getUsedCarId()));
 
-        usedCar.changeStatus("판매 완료");
+        orderProcess.enableDeliveryService();
+        usedCar.changeStatus("거래 완료");
     }
 
     @Override
-    public List<OrderListResDto> getgetAllOrders(String email) {
+    public List<OrderListResDto> getAllOrders(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
