@@ -1,10 +1,13 @@
 package com.example.whatcha.domain.usedCar.dto.response;
 
 import com.example.whatcha.domain.interest.dao.LikedCarRepository;
+import com.example.whatcha.domain.interest.domain.LikedCar;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.domain.User;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.Optional;
 
 @Data
 @Builder
@@ -63,7 +66,9 @@ public class UsedCarDetailResDto {
     private final Boolean isLiked;
 
     public static UsedCarDetailResDto entityToResDto(UsedCar usedCar, User user, LikedCarRepository likedCarRepository) {
-        boolean isLiked = likedCarRepository.findByUserIdAndUsedCar_UsedCarId(user.getUserId(), usedCar.getUsedCarId()).isPresent();
+
+        Optional<LikedCar> likedCarOptional = likedCarRepository.findByUserIdAndUsedCar_UsedCarId(user.getUserId(), usedCar.getUsedCarId());
+        boolean isLiked = likedCarOptional.map(LikedCar::isLiked).orElse(false); // 값이 없으면 기본값 false
 
         return UsedCarDetailResDto.builder()
                 // 차량 정보

@@ -26,6 +26,8 @@ public interface LikedCarRepository extends JpaRepository<LikedCar, Long> {
 
     Optional<LikedCar> findByUserIdAndUsedCar_UsedCarId(Long userId, Long usedCarId);
 
+    Optional<LikedCar> findIsLikedByUserIdAndUsedCar_UsedCarId(Long userId, Long usedCarId);
+
     @Query("SELECT lc.usedCar " +
             "FROM LikedCar lc " +
             "WHERE lc.isLiked = true " +
