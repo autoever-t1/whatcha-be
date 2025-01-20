@@ -1,5 +1,7 @@
 package com.example.whatcha.domain.admin.service;
 
+import com.example.whatcha.domain.admin.dao.DashBoardRepository;
+import com.example.whatcha.domain.admin.domain.DashBoard;
 import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.branchStore.dao.BranchStoreRepository;
@@ -28,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -49,6 +52,7 @@ public class AdminServiceImpl implements AdminService {
     private final ModelRepository modelRepository;
     private final FcmService fcmService;
     private final ColorRepository colorRepository;
+    private final DashBoardRepository dashBoardRepository;
 
     private static final List<String> KEYWORDS = Arrays.asList(
             "G80", "그랜저", "베뉴", "GV80", "아반떼", "쏘나타", "싼타페", "팰리세이드",
@@ -309,8 +313,6 @@ public class AdminServiceImpl implements AdminService {
         usedCarRepository.save(usedCar);
     }
 
-
-
     @Override
     public String pushAlarm(RegisterCarReqDto registerCarReqDto) {
         List<User> users = userRepository.findAll();
@@ -324,12 +326,8 @@ public class AdminServiceImpl implements AdminService {
 
         // 리스트가 비어 있으면 null 반환
         if (isFilteredUsers.isEmpty()) {
-            System.out.printf("조건에 맞는 매물 아님");
             return null; // 비어있으면 null 반환
         }
-
-        // 비어 있지 않으면 푸시 알람 전송
-        System.out.println("Filtered Users: " + isFilteredUsers.get(0).getName());
 
         for (User user : isFilteredUsers) {
             sendPushNotification(user);
@@ -337,7 +335,6 @@ public class AdminServiceImpl implements AdminService {
 
         return "푸시 알람 성공";
     }
-
 
     private boolean Filtering(User user, Integer productPrice, String productName) {
         // 예산 범위 확인
@@ -406,4 +403,68 @@ public class AdminServiceImpl implements AdminService {
 
         return result;
     }
+
+    @Override
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    public void dashBoardRatio() {
+        //유저수
+        Long userCount = userRepository.count();
+
+        //판매차량
+        Long orderCount = orderRepository.count();
+
+        //총 판매량
+        Long totalSales = orderRepository.getTotalSales();
+
+        Long wholeCarCont = usedCarRepository.count();
+
+        //차량 재고
+        Long carStock = wholeCarCont - orderCount;
+
+        LocalDate date = LocalDate.now();
+
+        DashBoard dashBoard = DashBoard.builder()
+                .userCount(userCount)
+                .orderCount(orderCount)
+                .totalSales(totalSales)
+                .carStock(carStock)
+                .date(date)
+                .build();
+
+        dashBoardRepository.save(dashBoard);
+    }
+
+    @Override
+    public List<DashBoardRatioResDto> getDashBoardRatio() {
+        // 현재 날짜와 전날 계산
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+
+        // 오늘 데이터 조회
+        DashBoard todayData = dashBoardRepository.findByDate(today)
+                .orElseThrow(() -> new IllegalArgumentException("Dashboard data not found for today: " + today));
+
+        // 전날 데이터 조회
+        DashBoard yesterdayData = dashBoardRepository.findByDate(yesterday)
+                .orElseThrow(() -> new IllegalArgumentException("Dashboard data not found for yesterday: " + yesterday));
+
+        DashBoardRatioResDto todayDto = DashBoardRatioResDto.builder()
+                .date(todayData.getDate())
+                .userCount(todayData.getUserCount())
+                .orderCount(todayData.getOrderCount())
+                .totalSales(todayData.getTotalSales())
+                .carStock(todayData.getCarStock())
+                .build();
+
+        DashBoardRatioResDto yesterdayDto = DashBoardRatioResDto.builder()
+                .date(yesterdayData.getDate())
+                .userCount(yesterdayData.getUserCount())
+                .orderCount(yesterdayData.getOrderCount())
+                .totalSales(yesterdayData.getTotalSales())
+                .carStock(yesterdayData.getCarStock())
+                .build();
+
+        return List.of(todayDto, yesterdayDto);
+    }
+
 }
