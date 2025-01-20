@@ -4,11 +4,18 @@ FROM amazoncorretto:17
 # 컨테이너 내부에서 사용할 포트를 8080으로 공개
 EXPOSE 8080
 
-# 환경변수로 전달된 JAR 파일을 복사하여 컨테이너 내부의 app.jar로 설정
-# 이때, JAR 파일은 build/libs 디렉토리에 위치
+# 작업 디렉토리 생성
+WORKDIR /app
+
+# Firebase 설정 파일 복사
+COPY src/main/resources/worryboxFirebaseKey.json /app/worryboxFirebaseKey.json
+
+# JAR 파일 복사
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
 
+# 파일 권한 설정
+RUN chmod 644 /app/worryboxFirebaseKey.json
+
 # 컨테이너가 시작될 때 실행할 명령어를 지정
-# Java로 app.jar 파일을 실행
 ENTRYPOINT ["java","-jar","app.jar"]
