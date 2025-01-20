@@ -15,8 +15,6 @@ public interface UserCarAlertRepository extends JpaRepository<UserCarAlert, Long
   
     boolean existsByUserIdAndModel_ModelId(Long userId, Long modelId);
 
-    Optional<UserCarAlert> findByUserId(Long userId);
-
     Optional<UserCarAlert> findByUserIdAndModel(Long userId, Model model);
 
 }

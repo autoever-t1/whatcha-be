@@ -294,12 +294,23 @@ public class AdminServiceImpl implements AdminService {
 
         // modelName으로 Model 찾기, 없으면 저장 후 반환
         String modelName = registerCarReqDto.getModelName();
-        Model model = modelRepository.findByModelName(modelName)
-                .orElseGet(() -> modelRepository.save(Model.builder()
-                        .modelName(modelName)
-                        .modelType(registerCarReqDto.getModelType())
-                        .factoryPrice(registerCarReqDto.getPrice())
-                        .build()));
+
+        List<Model> existingModels = modelRepository.findAllByModelName(modelName);
+
+        Model model;
+        if (existingModels.isEmpty()) {
+            // 모델이 존재하지 않으면 새로 생성해서 저장
+            model = Model.builder()
+                    .modelName(modelName)
+                    .modelType(registerCarReqDto.getModelType())
+                    .factoryPrice(registerCarReqDto.getPrice())
+                    .build();
+            modelRepository.save(model);
+        } else {
+            // 첫 번째 모델을 사용
+            model = existingModels.get(0);
+        }
+
 
         // UsedCar 객체 생성
         UsedCar usedCar = UsedCar.builder()
@@ -332,6 +343,7 @@ public class AdminServiceImpl implements AdminService {
 
         delayedPushAlarm(registerCarReqDto);
     }
+
 
     @Override
     public String pushAlarm(RegisterCarReqDto registerCarReqDto) {
@@ -369,8 +381,9 @@ public class AdminServiceImpl implements AdminService {
         boolean isPreferredModel = KEYWORDS.stream().anyMatch(productName::contains);
 
         // 알림 신청 모델 확인
-        UserCarAlert userCarAlert = userCarAlertRepository.findByUserId(user.getUserId()).orElse(null);
-        boolean isAlertModel = userCarAlert != null && modelId.equals(userCarAlert.getModel().getModelId());
+        List<UserCarAlert> userCarAlerts = userCarAlertRepository.findAllByUserId(user.getUserId());
+        boolean isAlertModel = userCarAlerts.stream()
+                .anyMatch(alert -> modelId.equals(alert.getModel().getModelId()));
 
         // 예산 범위와 선호 모델이 모두 맞거나 알림 신청 모델일 때 true 반환
         return (isWithinBudget && isPreferredModel) || isAlertModel;
