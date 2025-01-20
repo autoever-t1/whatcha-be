@@ -1,6 +1,5 @@
 package com.example.whatcha.global.security.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.whatcha.domain.user.dao.LogoutAccessTokenRedisRepository;
 import com.example.whatcha.domain.user.domain.RefreshToken;
 import com.example.whatcha.domain.user.dto.response.TokenInfo;
@@ -14,11 +13,13 @@ import com.example.whatcha.global.jwt.constant.JwtResponseMessage;
 import com.example.whatcha.global.jwt.dto.Token;
 import com.example.whatcha.global.jwt.exception.MalformedHeaderException;
 import com.example.whatcha.global.jwt.exception.TokenNotFoundException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
 import static com.example.whatcha.global.constant.ExceptionMessage.ALREADY_LOGGED_OUT;
 import static com.example.whatcha.global.jwt.constant.JwtExceptionMessage.MALFORMED_HEADER;
@@ -83,34 +85,25 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
      * 만료된 경우 Redis에 저장된 Refresh Token을 통해 새로운 Access Token을 재발급합니다.
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        String requestUri = request.getRequestURI();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = getJwtFromRequest(request);
 
-        // 허용된 URL 경로인지 확인
-        if (isPermitUrl(requestUri)) {
-            filterChain.doFilter(request, response);
-            return;
+        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+            String email = jwtTokenProvider.getEmailFromToken(token);
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        try {
-            Token token = resolveAccessToken(request);
-            // 로그아웃 상태인지 확인
-            checkLogout(token.getToken());
+        filterChain.doFilter(request, response);
+    }
 
-            // Access Token이 유효한 경우 SecurityContext에 인증 정보를 설정합니다.
-            if (token != null && jwtTokenProvider.validateToken(token.getToken())) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token.getToken());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else if (token != null && !jwtTokenProvider.validateToken(token.getToken())) {
-                handleExpiredAccessToken(request, response);
-                return;
-            }
-
-            filterChain.doFilter(request, response);
-        } catch (TokenException e) {
-            makeTokenExceptionResponse(response, e);
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
+        return null;
     }
 
     /**

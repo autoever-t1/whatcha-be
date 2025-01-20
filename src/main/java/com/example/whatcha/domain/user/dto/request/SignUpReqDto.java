@@ -20,6 +20,7 @@ public class SignUpReqDto {
     private Double latitude;
     private Double longitude;
     private String appToken;
+    private String gender;
 
     public User dtoToEntity() {
         return User.builder()
@@ -32,6 +33,7 @@ public class SignUpReqDto {
                 .longitude(longitude)
                 .userType(UserType.ROLE_USER)
                 .appToken(appToken)
+                .gender(gender)
                 .build();
     }
 }

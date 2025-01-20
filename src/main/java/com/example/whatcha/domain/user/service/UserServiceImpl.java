@@ -2,10 +2,8 @@ package com.example.whatcha.domain.user.service;
 
 import com.example.whatcha.domain.user.constant.UserExceptionMessage;
 import com.example.whatcha.domain.user.dao.LogoutAccessTokenRedisRepository;
-import com.example.whatcha.domain.user.dao.RefreshTokenRedisRepository;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.LogoutAccessToken;
-import com.example.whatcha.domain.user.domain.RefreshToken;
 import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.domain.user.dto.request.*;
 import com.example.whatcha.domain.user.dto.response.AuthenticatedResDto;
@@ -13,13 +11,9 @@ import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import com.example.whatcha.domain.user.exception.InvalidSignUpException;
 import com.example.whatcha.domain.user.exception.UserNotFoundException;
-import com.example.whatcha.global.exception.NotFoundException;
-import com.example.whatcha.global.exception.TokenException;
 import com.example.whatcha.global.jwt.JwtTokenProvider;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
-import com.example.whatcha.global.security.domain.CustomUserDetails;
 import com.example.whatcha.global.security.util.SecurityUtils;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +27,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Collections;
 
-import static com.example.whatcha.domain.user.constant.UserExceptionMessage.*;
+import static com.example.whatcha.domain.user.constant.UserExceptionMessage.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +38,6 @@ public class UserServiceImpl implements UserService {
     private final UserRedisService userRedisService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final LogoutAccessTokenRedisRepository logoutAccessTokenRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -57,84 +50,47 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public AuthenticatedResDto kakaoLogin(LoginReqDto loginReqDto) {
-        log.info("[카카오 로그인] 카카오 로그인 정보: appToken = {}, email = {}, name = {}",
-                loginReqDto.getAppToken(), loginReqDto.getEmail(), loginReqDto.getName());
-
-        // 이미 가입된 사용자 확인
         User user = userRepository.findByEmail(loginReqDto.getEmail())
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND.getMessage()));
 
-        log.info("[카카오 로그인] 사용자 처리 완료: {}", user.getEmail());
+        TokenInfo tokenInfo = setFirstAuthentication(loginReqDto.getEmail());
 
-        // CustomUserDetails 객체 생성
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        // JWT 토큰 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
-        );
-
-        // JWT 토큰 생성
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        logoutAccessTokenRepository.deleteById(loginReqDto.getEmail());
 
         // Refresh Token을 Redis에 저장
-        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
 
-        // 응답 객체 반환
+        log.info("[카카오 로그인 성공] 사용자: {}", user.getEmail());
+
         return AuthenticatedResDto.builder()
                 .userInfo(UserInfoResDto.entityToResDto(user))
                 .tokenInfo(tokenInfo)
                 .build();
     }
-
 
     @Override
     public AuthenticatedResDto signUp(SignUpReqDto signUpReqDto) {
-        log.info("[카카오 회원가입] 신규 회원 등록 시도: 이메일 = {}, 이름 = {}", signUpReqDto.getEmail(), signUpReqDto.getName());
-
-        // 회원가입 정보 유효성 확인
-        if (userRepository.findByEmail(signUpReqDto.getEmail()) != null) {
-            log.error("[회원가입] 이미 등록 된 회원.");
-            throw new InvalidSignUpException(UserExceptionMessage.SIGN_UP_NOT_VALID.getMessage());
-        }
 
         User user = userRepository.save(signUpReqDto.dtoToEntity());
 
-        log.info("[카카오 회원가입] 저장된 사용자 ID: {}, 이메일: {}", user.getUserId(), user.getEmail());
-
-        // CustomUserDetails 객체 생성
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        // JWT 토큰 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                user.getEmail(),
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name())) // 권한 추가
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserType().name()))
         );
 
-        // JWT 토큰 생성 (accessToken, refreshToken)
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
-        // Refresh Token을 Redis에 저장
-        saveRefreshTokenInRedis(user.getEmail(), tokenInfo.getRefreshToken());
+        logoutAccessTokenRepository.deleteById(signUpReqDto.getEmail());
 
-        // 응답 객체 반환
+        userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
+
+        log.info("[카카오 회원가입 성공] 이메일: {}", user.getEmail());
+
         return AuthenticatedResDto.builder()
                 .userInfo(UserInfoResDto.entityToResDto(user))
                 .tokenInfo(tokenInfo)
                 .build();
-    }
-
-    private void saveRefreshTokenInRedis(String email, String refreshToken) {
-        RefreshToken token = RefreshToken.builder()
-                .email(email)
-                .refreshToken(refreshToken)
-                .expiration(REFRESH_TOKEN_EXPIRED_IN)
-                .build();
-
-        refreshTokenRedisRepository.save(token);
     }
 
     /**
@@ -145,7 +101,7 @@ public class UserServiceImpl implements UserService {
         // 로그아웃 여부 redis에 넣어서 accessToken가 유효한지 확인
         String email = SecurityUtils.getLoginUserEmail();
         long remainMilliSeconds = jwtTokenProvider.getRemainingExpiration(accessToken);
-        refreshTokenRedisRepository.deleteById(email);
+        userRedisService.deleteRefreshToken(email);
         logoutAccessTokenRepository.save(LogoutAccessToken.builder()
                 .email(email)
                 .accessToken(accessToken)
@@ -217,81 +173,18 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 만료된 Refresh Token으로 새 Access 및 Refresh Token 발급
-     */
-    @Override
-    public TokenInfo reissueToken(String accessToken, String refreshToken) {
-        log.info("[토큰 재발급] 토큰 재발급 요청. accessToken : {}, refreshToken : {}", accessToken, refreshToken);
-
-        String email = getEmailFromToken(refreshToken);
-
-        checkRefreshToken(refreshToken, email);
-
-        TokenInfo newTokenInfo = addTokens(email);
-
-        log.info("[토큰 재발급] 토큰 재발급 성공. 새로운 accessToken : {}, 새로운 refreshToken : {}", newTokenInfo.getAccessToken(), newTokenInfo.getRefreshToken());
-        return newTokenInfo;
-    }
-
-    /**
-     * 새로운 Token 생성 후 Redis에 저장
-     */
-    private TokenInfo addTokens(String email) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, null);
-        TokenInfo newTokens = jwtTokenProvider.generateToken(authentication);
-
-        refreshTokenRedisRepository.deleteById(email);
-        refreshTokenRedisRepository.save(
-                RefreshToken.builder()
-                        .email(email)
-                        .refreshToken(newTokens.getRefreshToken())
-                        .expiration(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                        .build()
-        );
-
-        return newTokens;
-    }
-
-    /**
-     * Refresh Token에서 이메일 추출
-     */
-    private String getEmailFromToken(String refreshToken) {
-        try {
-            return jwtTokenProvider.getUsernameFromExpiredToken(refreshToken);
-        } catch (ExpiredJwtException e) {
-            log.error("[토큰 재발급] 리프레시 토큰이 만료되었습니다. 재로그인 필요.");
-            throw new TokenException(REFRESH_TOKEN_EXPIRED.getMessage());
-        }
-    }
-
-    /**
-     * Refresh Token의 유효성 확인
-     */
-    private void checkRefreshToken(String refreshToken, String email) {
-        String storedToken = refreshTokenRedisRepository.findById(email)
-                .orElseThrow(() -> new NotFoundException(REFRESH_TOKEN_NOT_FOUND.getMessage()))
-                .getRefreshToken();
-
-        if (!storedToken.equals(refreshToken)) {
-            log.error("[토큰 재발급] 토큰 불일치. 재발급 불가.");
-            throw new TokenException(TOKEN_MISMATCH.getMessage());
-        }
-    }
-
-
-    /**
      * 인증 후 Access 및 Refresh Token 발급
      */
-    private TokenInfo setFirstAuthentication(String email, String password) {
+    private TokenInfo setFirstAuthentication(String email) {
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(email, password);
+                new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
 
         try {
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-            log.info("[인증 처리] 인증 성공. email : {}", email);
+            log.info("[인증 성공] 사용자 인증: {}", email);
             return jwtTokenProvider.generateToken(authentication);
         } catch (Exception e) {
-            log.error("[인증 실패] email : {}, error: {}", email, e.getMessage());
+            log.error("[인증 실패] 이메일: {}, 오류: {}", email, e.getMessage());
             throw e;
         }
     }
