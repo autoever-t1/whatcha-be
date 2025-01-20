@@ -33,7 +33,7 @@ public class FcmServiceImpl implements FcmService {
 
     public FcmServiceImpl(
             ObjectMapper objectMapper,
-            @Value("${firebase.config.path}") Resource firebaseConfigPath,
+            @Value("classpath:worryboxFirebaseKey.json") Resource firebaseConfigPath,
             @Value("${firebase.fcm.api-url}") String apiUrl) {
         this.objectMapper = objectMapper;
         this.firebaseConfigPath = firebaseConfigPath;
