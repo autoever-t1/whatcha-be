@@ -112,7 +112,7 @@ public class UserRedisServiceImpl implements UserRedisService {
         RefreshToken token = RefreshToken.builder()
                 .email(email)
                 .refreshToken(refreshToken)
-                .expiration(REFRESH_TOKEN_EXPIRED_IN / 1000)
+                .expiration(REFRESH_TOKEN_EXPIRED_IN)
                 .build();
 
         refreshTokenRedisRepository.save(token);
