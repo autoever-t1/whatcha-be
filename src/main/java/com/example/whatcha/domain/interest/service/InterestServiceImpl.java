@@ -162,20 +162,22 @@ public class InterestServiceImpl implements InterestService {
 
 
     @Override
-    public UserCarAlert addUserCarAlert(Long userId, Long modelId, LocalDate alertExpirationDate) {
-        if (userCarAlertRepository.existsByUserIdAndModel_ModelId(userId, modelId)) {
-            throw new IllegalArgumentException("Alert already exists for this user and model.");
-        }
+    public UserCarAlert addUserCarAlert(Long userId, String modelName, LocalDate alertExpirationDate) {
+        Model model = modelRepository.findByModelName(modelName)
+                .orElseThrow(() -> new EntityNotFoundException("Model not found with name: " + modelName));
 
-        Model model = modelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException("Model not found with id: " + modelId));
-
-        UserCarAlert userCarAlert = UserCarAlert.builder()
-                .userId(userId)
-                .model(model)
-                .alertExpirationDate(alertExpirationDate)
-                .build();
-
-        return userCarAlertRepository.save(userCarAlert);
+        return userCarAlertRepository.findByUserIdAndModel(userId, model)
+                .map(alert -> {
+                    alert.updateAlertExpirationDate(alertExpirationDate); // 만료일 업데이트
+                    return userCarAlertRepository.save(alert); // 업데이트 후 저장
+                })
+                .orElseGet(() -> userCarAlertRepository.save( // 새로운 알림 생성 및 저장
+                        UserCarAlert.builder()
+                                .userId(userId)
+                                .model(model)
+                                .alertExpirationDate(alertExpirationDate)
+                                .build()
+                ));
     }
 
     @Override
