@@ -84,13 +84,21 @@ public class OrderServiceImpl implements OrderService {
         UsedCar usedCar = usedCarRepository.findById(usedCarId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + usedCarId));
 
+        System.out.println("111111111111111111111111");
+
         if (!"구매 가능".equals(usedCar.getStatus())) {
             throw new IllegalArgumentException("해당 매물은 계약 진행중인 매물입니다!");
         }
 
-        // usedCar status값 바꿔주기
-        UsedCar updatedUsedCar = usedCar.changeStatus("거래중");
-        usedCarRepository.save(updatedUsedCar);
+        try {
+            usedCar.changeStatus("거래중");
+
+            usedCarRepository.save(usedCar);
+        } catch (Exception e) {
+            System.err.println("Error occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
 
         // 해당 branch ownedCarCount -1 해주기
         Long branchStoreId = usedCar.getBranchStore().getBranchStoreId();
