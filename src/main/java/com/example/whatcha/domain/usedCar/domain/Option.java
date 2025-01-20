@@ -15,7 +15,7 @@ public class Option extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long optionId;
 
-    @OneToOne(mappedBy = "option", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "option", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private UsedCar usedCar;
 
     @Column(nullable = false)
