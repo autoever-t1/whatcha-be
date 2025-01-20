@@ -4,7 +4,6 @@ import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
-import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
