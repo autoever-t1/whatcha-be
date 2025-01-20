@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.example.whatcha")
-@EnableScheduling
 public class WhatchaApplication {
 
     public static void main(String[] args) {
