@@ -16,7 +16,9 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,44 +42,52 @@ public class FcmServiceImpl implements FcmService {
         return googleCredentials.getAccessToken().getTokenValue();
     }
 
-    private String makeMessage(String targetToken, String title, String body) throws
-            com.fasterxml.jackson.core.JsonProcessingException {
+    private String makeMessage(String appToken, String title, String body, String modelName, Integer price) throws com.fasterxml.jackson.core.JsonProcessingException {
+        // 데이터 추가
+        Map<String, String> data = new HashMap<>();
+        data.put("modelName", modelName);
+        data.put("price", price.toString());
+
         FcmMessage fcmMessage = FcmMessage.builder()
                 .message(FcmMessage.Message.builder()
-                        .token(targetToken)
+                        .token(appToken)
                         .notification(FcmMessage.Notification.builder()
                                 .title(title)
                                 .body(body)
                                 .image(null)
                                 .build()
-                        ).build()).validateOnly(false).build();
+                        )
+                        .data(data)
+                        .build())
+                .validateOnly(false)
+                .build();
+
         return objectMapper.writeValueAsString(fcmMessage);
     }
 
-@Override
-public void sendMessageTo(String appToken, String title, String body) throws IOException {
-    if (appToken == null || appToken.isEmpty()) {
-        throw new IllegalArgumentException("FCM 토큰이 유효하지 않습니다.");
+    @Override
+    public void sendMessageTo(String appToken, String title, String body, String modelName, Integer price) throws IOException {
+        if (appToken == null || appToken.isEmpty()) {
+            throw new IllegalArgumentException("FCM 토큰이 유효하지 않습니다.");
+        }
+
+        String message = makeMessage(appToken, title, body, modelName, price);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(apiUrl)
+                .post(requestBody)
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+        if (response.code() != 200) {
+            log.error("푸시 알람 전송 실패: {}", responseBody);
+            throw new IOException("푸시 알람 전송에 실패했습니다. 응답: " + responseBody);
+        }
+
+        System.out.println(responseBody);
     }
-
-    String message = makeMessage(appToken, title, body);
-    OkHttpClient client = new OkHttpClient();
-    RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
-    Request request = new Request.Builder()
-            .url(apiUrl)
-            .post(requestBody)
-            .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-            .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-            .build();
-
-    Response response = client.newCall(request).execute();
-    String responseBody = response.body().string();
-    if (response.code() != 200) {
-        log.error("푸시 알람 전송 실패: {}", responseBody);
-        throw new IOException("푸시 알람 전송에 실패했습니다. 응답: " + responseBody);
-    }
-
-    System.out.println(responseBody);
-}
-
 }

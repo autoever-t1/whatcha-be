@@ -13,6 +13,8 @@ import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
 import com.example.whatcha.domain.coupon.exception.CouponNotFoundException;
 import com.example.whatcha.domain.fcm.service.FcmService;
+import com.example.whatcha.domain.interest.dao.UserCarAlertRepository;
+import com.example.whatcha.domain.interest.domain.UserCarAlert;
 import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.usedCar.dao.ColorRepository;
@@ -30,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +40,26 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
+
+    @Async
+    public void delayedPushAlarm(RegisterCarReqDto registerCarReqDto) {
+        try {
+            Thread.sleep(3000); // 3초 대기
+            pushAlarm(registerCarReqDto);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error while delaying pushAlarm execution", e);
+        }
+    }
+
     private final CouponRepository couponRepository;
     private final UserCouponsRepository userCouponsRepository;
     private final UserRepository userRepository;
@@ -53,6 +70,7 @@ public class AdminServiceImpl implements AdminService {
     private final FcmService fcmService;
     private final ColorRepository colorRepository;
     private final DashBoardRepository dashBoardRepository;
+    private final UserCarAlertRepository userCarAlertRepository;
 
     private static final List<String> KEYWORDS = Arrays.asList(
             "G80", "그랜저", "베뉴", "GV80", "아반떼", "쏘나타", "싼타페", "팰리세이드",
@@ -311,6 +329,8 @@ public class AdminServiceImpl implements AdminService {
 
         // UsedCar 저장
         usedCarRepository.save(usedCar);
+
+        delayedPushAlarm(registerCarReqDto);
     }
 
     @Override
@@ -320,8 +340,13 @@ public class AdminServiceImpl implements AdminService {
         Integer price = registerCarReqDto.getPrice();
         String modelName = registerCarReqDto.getModelName();
 
+        Model model = modelRepository.findByModelName(modelName)
+                .orElseThrow(() -> new IllegalArgumentException("Model not found with name: " + modelName));
+
+        Long modelId = model.getModelId();
+
         List<User> isFilteredUsers = users.stream()
-                .filter(user -> Filtering(user, price, modelName))
+                .filter(user -> Filtering(user, price, modelName, modelId))
                 .collect(Collectors.toList());
 
         // 리스트가 비어 있으면 null 반환
@@ -330,34 +355,40 @@ public class AdminServiceImpl implements AdminService {
         }
 
         for (User user : isFilteredUsers) {
-            sendPushNotification(user);
+            sendPushNotification(user, modelName, price);
         }
 
         return "푸시 알람 성공";
     }
 
-    private boolean Filtering(User user, Integer productPrice, String productName) {
+    private boolean Filtering(User user, Integer productPrice, String productName, Long modelId) {
         // 예산 범위 확인
         boolean isWithinBudget = productPrice >= user.getBudgetMin() && productPrice <= user.getBudgetMax();
 
         // 선호 모델 확인
         boolean isPreferredModel = KEYWORDS.stream().anyMatch(productName::contains);
 
-        // 예산 범위와 선호 모델이 모두 맞으면 true 반환
-        return isWithinBudget && isPreferredModel;
+        // 알림 신청 모델 확인
+        UserCarAlert userCarAlert = userCarAlertRepository.findByUserId(user.getUserId()).orElse(null);
+        boolean isAlertModel = userCarAlert != null && modelId.equals(userCarAlert.getModel().getModelId());
+
+        // 예산 범위와 선호 모델이 모두 맞거나 알림 신청 모델일 때 true 반환
+        return (isWithinBudget && isPreferredModel) || isAlertModel;
     }
 
-    private void sendPushNotification(User user) {
+    private void sendPushNotification(User user, String modelName, Integer price) {
         // FCM 푸시 알림 전송
         String appToken = user.getAppToken();
-        String title = "조건에 맞는 새로운 매물 등록!";
-        String body = user.getName() + "님, 새로운 매물이 등록되었습니다. 확인해보세요!";
+        String title = "🚨 새로운 매물이 등록되었습니다! 지금 바로 확인하세요!";
+        String body = user.getName() + "님, 새로운 매물이 등록되었습니다.\n" +
+                "모델명: " + modelName + ", 가격: " + price + "원. 확인해보세요!";
         try {
-            fcmService.sendMessageTo(appToken, title, body);
+            fcmService.sendMessageTo(appToken, title, body, modelName, price);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public List<OrderStatisticsByDayResDto> getOrderStatisticsByDay() {
