@@ -57,7 +57,6 @@ public class FcmServiceImpl implements FcmService {
                                 .image(null)
                                 .build()
                         )
-                        .data(data)
                         .build())
                 .validateOnly(false)
                 .build();
@@ -83,6 +82,11 @@ public class FcmServiceImpl implements FcmService {
 
         Response response = client.newCall(request).execute();
         String responseBody = response.body().string();
+
+        log.info("Request message: {}", message);
+        log.info("Response status: {}", response.code());
+        log.info("Response body: {}", responseBody);
+
         if (response.code() != 200) {
             log.error("푸시 알람 전송 실패: {}", responseBody);
             throw new IOException("푸시 알람 전송에 실패했습니다. 응답: " + responseBody);
