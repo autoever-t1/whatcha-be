@@ -18,6 +18,5 @@ public interface UserCarAlertRepository extends JpaRepository<UserCarAlert, Long
 
     @Modifying
     @Query("DELETE FROM UserCarAlert u WHERE u.alertExpirationDate < :date")
-    int deleteExpiredAlerts(LocalDate date);
-
+    void deleteExpiredAlerts(LocalDate date);
 }
