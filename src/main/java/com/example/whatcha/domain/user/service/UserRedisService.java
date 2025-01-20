@@ -5,7 +5,7 @@ import com.example.whatcha.domain.user.dto.response.TokenInfo;
 
 public interface UserRedisService {
 
-    TokenInfo reissueToken(String accessToken, String refreshToken);
+    TokenInfo reissueToken(String accessToken);
     void addRefreshToken(String email, String refreshToken);
     RefreshToken findRefreshToken(String email);
     void validateRefreshToken(String refreshToken, String email);
