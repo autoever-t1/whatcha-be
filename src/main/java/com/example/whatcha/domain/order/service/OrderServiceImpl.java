@@ -1,28 +1,37 @@
 package com.example.whatcha.domain.order.service;
 
+import com.example.whatcha.domain.admin.dto.response.BranchStoreResDto;
 import com.example.whatcha.domain.branchStore.dao.BranchStoreRepository;
 import com.example.whatcha.domain.branchStore.domain.BranchStore;
 import com.example.whatcha.domain.coupon.dao.CouponRepository;
 import com.example.whatcha.domain.coupon.dao.UserCouponsRepository;
+import com.example.whatcha.domain.coupon.domain.Coupon;
 import com.example.whatcha.domain.coupon.domain.UserCoupons;
+import com.example.whatcha.domain.coupon.dto.response.CouponResDto;
 import com.example.whatcha.domain.order.dao.OrderProcessRepository;
 import com.example.whatcha.domain.order.dao.OrderRepository;
 import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.order.domain.OrderProcess;
-import com.example.whatcha.domain.order.dto.response.DepositResDto;
-import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
-import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
+import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.usedCar.dao.ModelRepository;
 import com.example.whatcha.domain.usedCar.dao.UsedCarRepository;
 import com.example.whatcha.domain.usedCar.domain.Model;
 import com.example.whatcha.domain.usedCar.domain.UsedCar;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
-import com.example.whatcha.global.security.util.SecurityUtils;
+import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +45,13 @@ public class OrderServiceImpl implements OrderService {
     private final UsedCarRepository usedCarRepository;
     private final BranchStoreRepository branchStoreRepository;
     private final ModelRepository modelRepository;
+    private final OkHttpClient okHttpClient;
+
+    @Value("${secret.naver.clientId}")
+    private String clientId;
+
+    @Value("${secret.naver.clientSecret}")
+    private String clientSecret;
 
     @Override
     public OrderProcessResDto getOrderProcess(Long orderId) {
@@ -189,4 +205,166 @@ public class OrderServiceImpl implements OrderService {
         orderProcess.enableDeliveryService();
     }
 
+    @Override
+    public void deliveryCompleted(Long orderId) {
+        //orderId를 통해 OrderProcess를 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + orderId));
+
+        orderProcess.deliveryCompleted();
+
+        //orderId로 Order찾기
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found for orderId: " + orderId));
+
+        UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId()).orElseThrow(() -> new IllegalArgumentException("Invalid usedCarId: " + order.getUsedCarId()));
+
+        usedCar.changeStatus("판매 완료");
+    }
+
+    @Override
+    public List<OrderListResDto> getgetAllOrders(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid userEmail: " + email));
+
+        List<Order> orders = orderRepository.findByUserId(user.getUserId());
+
+        List<OrderListResDto> orderListResDtos = orders.stream()
+                .map(order -> {
+                    // UsedCar 정보를 조회
+                    UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId())
+                            .orElseThrow(() -> new IllegalArgumentException("Invalid UsedCarId: " + order.getUsedCarId()));
+
+                    // OrderProcess 정보를 조회
+                    OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(order.getOrderId())
+                            .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + order.getOrderId()));
+
+                    // 각 주문의 process 값 설정
+                    int process = 0;
+                    if (!orderProcess.getFullyPaid()) {
+                        process = 1; //잔금 결제중
+                    } else if (!orderProcess.getContractSigned()) {
+                        process = 2; //계약서 작성중
+                    } else if (!orderProcess.getDeliveryService()) {
+                        process = 3; //수령방법 선택중
+                    } else if(!orderProcess.getDeliveryCompleted()){
+                        process = 4; // 배송중
+                    }
+
+                    return OrderListResDto.builder()
+                            .orderId(order.getOrderId())
+                            .mainImage(usedCar.getMainImage())
+                            .modelName(usedCar.getModelName())
+                            .process(process)
+                            .orderDate(order.getCreatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return orderListResDtos;
+    }
+
+    @Override
+    public OrderSheetResDto getOrderSheet(Long orderId) {
+        // Order 객체 조회
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found for orderId: " + orderId));
+
+        // UsedCar 객체 조회
+        UsedCar usedCar = usedCarRepository.findById(order.getUsedCarId())
+                .orElseThrow(() -> new IllegalArgumentException("UsedCar not found for usedCarId: " + order.getUsedCarId()));
+
+        // userCoupons 처리
+        UserCoupons userCoupons = null;
+        CouponResDto couponResDto = null;
+
+        // userCouponId가 null이 아닌 경우에만 쿠폰 정보 처리
+        if (order.getUserCoupons() != null && order.getUserCoupons().getUserCouponId() != null) {
+            Long userCouponId = order.getUserCoupons().getUserCouponId();
+            userCoupons = userCouponsRepository.findById(userCouponId).orElse(null);
+
+            if (userCoupons != null) {
+                // 쿠폰 객체 가져오기 및 비활성화 처리
+                Coupon coupon = userCoupons.getCoupon();
+                couponResDto = CouponResDto.builder()
+                        .userCouponId(userCouponId)
+                        .couponName(coupon.getCouponName())
+                        .discountPercentage(coupon.getDiscountPercentage())
+                        .maxDiscountAmount(coupon.getMaxDiscountAmount())
+                        .expiryDate(userCoupons.getExpiryDate())
+                        .build();
+            }
+        }
+
+        // OrderProcess 객체 조회
+        OrderProcess orderProcess = orderProcessRepository.findByOrder_OrderId(order.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("OrderProcess not found for orderId: " + order.getOrderId()));
+
+        OrderResDto orderResDto = OrderResDto.builder()
+                .orderId(order.getOrderId())
+                .usedCarId(usedCar.getUsedCarId())
+                .fullPayment(order.getFullPayment())
+                .deposit(order.getDeposit())
+                .build();
+
+        OrderProcessResDto orderProcessResDto = OrderProcessResDto.toDto(orderProcess);
+
+        // BranchStore 객체 조회
+        BranchStore branchStore = branchStoreRepository.findById(usedCar.getBranchStore().getBranchStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("BranchStore not found for usedCarId: " + usedCar.getUsedCarId()));
+
+        BranchStoreResDto branchStoreResDto = BranchStoreResDto.entityToResDto(branchStore);
+
+        // 최종 OrderSheetResDto 생성 및 반환
+        return OrderSheetResDto.builder()
+                .price(usedCar.getPrice())
+                .modelName(usedCar.getModelName())
+                .registrationDate(usedCar.getRegistrationDate())
+                .vhclRegNo(usedCar.getVhclRegNo())
+                .mainImage(usedCar.getMainImage())
+                .mileage(usedCar.getMileage())
+                .couponInfo(couponResDto)
+                .orderInfo(orderResDto)
+                .orderProcessInfo(orderProcessResDto)
+                .branchStoreInfo(branchStoreResDto)
+                .build();
+    }
+
+    @Override
+    public PathInfoResDto getPathInfo(PathInfoReqDto request) throws Exception {
+        // 네이버 지도 API 사용
+        String url = String.format(
+                "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=%s,%s&goal=%s,%s",
+                request.getFromLng(),
+                request.getFromLat(),
+                request.getToLng(),
+                request.getToLat()
+        );
+
+        // HTTP 요청 생성하기 with okHttpRequest
+        Request okHttpRequest = new Request.Builder()
+                .url(url)
+                .addHeader("x-ncp-apigw-api-key-id", clientId)
+                .addHeader("x-ncp-apigw-api-key", clientSecret)
+                .get()
+                .build();
+
+        // API 호출해서 response가져오기
+        try (Response response = okHttpClient.newCall(okHttpRequest).execute()) {
+            if (!response.isSuccessful()) {
+                throw new Exception("Request failed with status code: " + response.code());
+            }
+
+            String responseBody = response.body() != null ? response.body().string() : null;
+
+            if (responseBody != null) {
+                Gson gson = new Gson();
+                PathInfoResDto pathInfo = gson.fromJson(responseBody, PathInfoResDto.class);
+                return pathInfo;
+            } else {
+                throw new Exception("No response body");
+            }
+        }
+    }
 }

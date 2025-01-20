@@ -53,4 +53,8 @@ public class OrderProcess {
     public void enableDeliveryService() {
         this.deliveryService = true;
     }
+
+    public void deliveryCompleted() {
+        this.deliveryCompleted = true;
+    }
 }

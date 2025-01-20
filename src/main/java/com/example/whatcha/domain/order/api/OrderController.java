@@ -1,9 +1,9 @@
 package com.example.whatcha.domain.order.api;
 
+import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.order.dto.request.DepositReqDto;
-import com.example.whatcha.domain.order.dto.response.DepositResDto;
-import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
-import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
+import com.example.whatcha.domain.order.dto.response.*;
 import com.example.whatcha.domain.order.service.OrderService;
 import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +11,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/order")
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+    private final AdminService adminService;
 
     // 주문 프로세스 진행 현황 보기
     @GetMapping("/{orderId}/process")
@@ -51,37 +54,66 @@ public class OrderController {
     @PostMapping("/deposit")
     public ResponseEntity<?> payDeposit(@RequestBody DepositReqDto request) {
         try{
-            String email = SecurityUtils.getLoginUserEmail();
-            DepositResDto response = orderService.payDeposit(email, request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
+            //String email = SecurityUtils.getLoginUserEmail();
+            DepositResDto response = orderService.payDeposit("dhkdwk1041@naver.com", request.getUsedCarId(), request.getFullPayment(), request.getDeposit(), request.getUserCouponId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계약금 납부하기 오류");
         }
     }
 
-    //잔금 결제하기
+    //잔금 결제하기 -> order 2단계
     @PostMapping("/{orderId}/fullPayment")
     public ResponseEntity<?> fullPayment(@PathVariable("orderId") Long orderId) {
         orderService.fullPayment(orderId);
         return ResponseEntity.ok().build();
     }
 
-    //계약서 작성하기
+    //계약서 작성하기 -> order 3단계
     @PostMapping("/{orderId}/writeContract")
     public ResponseEntity<?> writeContract(@PathVariable("orderId") Long orderId) {
         orderService.writeContract(orderId);
         return ResponseEntity.ok().build();
     }
 
-    //탁송 방법 선택
-    @PutMapping("/{orderId}/deliveryService")
+    //탁송 방법 선택 -> order 4단계
+    @PostMapping("/{orderId}/deliveryService")
     public ResponseEntity<?> deliveryService(@PathVariable("orderId") Long orderId) {
         orderService.deliveryService(orderId);
         return ResponseEntity.ok().build();
     }
 
+    //배송완료
+    @PostMapping("/{orderId}/deliveryCompleted")
+    public ResponseEntity<?> deliveryCompleted(@PathVariable("orderId") Long orderId) {
+        orderService.deliveryCompleted(orderId);
+        return ResponseEntity.ok().build();
+    }
+
+    // 사용자 주문서 보기
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrder(@PathVariable("orderId") Long orderId) {
-        return null;
+        OrderSheetResDto response = orderService.getOrderSheet(orderId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 사용자 주문목록 조회
+    @GetMapping("/orderList")
+    public ResponseEntity<List<OrderListResDto>> getAllOrders() {
+        String email = SecurityUtils.getLoginUserEmail();
+        List<OrderListResDto> response = orderService.getgetAllOrders(email);
+        return ResponseEntity.ok(response);
+    }
+
+
+    // order에서 지도 사용
+    @PostMapping("/path")
+    public ResponseEntity<?> getPathInfo(@RequestBody PathInfoReqDto request) {
+        try {
+            PathInfoResDto pathInfo = orderService.getPathInfo(request);
+            return ResponseEntity.ok(pathInfo);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("order 네이버 direction api 응답 오류: " + e.getMessage());
+        }
     }
 }

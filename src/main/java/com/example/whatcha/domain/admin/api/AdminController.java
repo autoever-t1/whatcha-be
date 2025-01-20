@@ -1,9 +1,11 @@
 package com.example.whatcha.domain.admin.api;
 
+import com.example.whatcha.domain.admin.dto.request.RegisterCarReqDto;
 import com.example.whatcha.domain.admin.dto.response.*;
 import com.example.whatcha.domain.admin.service.AdminService;
 import com.example.whatcha.domain.coupon.dto.request.CouponReqDto;
 import com.example.whatcha.domain.coupon.dto.response.CouponAdminResDto;
+import com.example.whatcha.domain.order.domain.Order;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -115,9 +117,48 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    //관리자 차량 등록하기
+    //관리자 매물 등록하기
+    @PostMapping("/registerCar")
+    public ResponseEntity<?> registerCar(@RequestBody RegisterCarReqDto registerCarReqDto) {
+        adminService.registerCar(registerCarReqDto);
+        return ResponseEntity.ok().build();
+    }
 
+    //매물 등록 후 푸시 알람 보내기
+    @PostMapping("/pushAlarm")
+    public ResponseEntity<?> pushAlarm(@RequestBody RegisterCarReqDto registerCarReqDto) {
+        adminService.pushAlarm(registerCarReqDto);
+        return ResponseEntity.ok().build();
+    }
 
+    //관리자 날짜별 계약 건수
+    @GetMapping("/order/statistics/day")
+    public ResponseEntity<Map<String, Object>> getOrderStatisticsByDay() {
+        List<OrderStatisticsByDayResDto> statistics = adminService.getOrderStatisticsByDay();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 모델별 계약 건수
+    @GetMapping("/statistics/model")
+    public ResponseEntity<Map<String, Object>> getStatisticsByModel() {
+        List<CarStatisticsByModelResDto> statistics = adminService.getCarStatisticsByModel();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statistics", statistics);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //관리자 대시보드 비율 확인
+    @GetMapping("/dashBoard/ratio")
+    public ResponseEntity<List<DashBoardRatioResDto>> dashBoardRatio() {
+        List<DashBoardRatioResDto> response = adminService.getDashBoardRatio();
+        return ResponseEntity.ok(response);
+    }
 
 }
 
