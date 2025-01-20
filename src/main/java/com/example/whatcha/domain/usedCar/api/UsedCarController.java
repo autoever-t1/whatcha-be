@@ -1,11 +1,10 @@
 package com.example.whatcha.domain.usedCar.api;
 
-import com.amazonaws.Response;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarDetailResDto;
+import com.example.whatcha.domain.usedCar.dto.response.UsedCarImageResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarListResDto;
 import com.example.whatcha.domain.usedCar.dto.response.UsedCarOrderInfoResDto;
 import com.example.whatcha.domain.usedCar.service.UsedCarService;
-import com.google.api.Http;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -118,5 +117,12 @@ public class UsedCarController {
     public ResponseEntity<UsedCarOrderInfoResDto> usedCarOrderInfo(@PathVariable Long usedCarId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(usedCarService.findOneUsedCarOrderInfo(usedCarId));
+    }
+
+    //5. 중고차 이미지 조회
+    @GetMapping("/image/{usedCarId}")
+    public ResponseEntity<List<UsedCarImageResDto>> findUsedCarImage(@PathVariable Long usedCarId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(usedCarService.findAllImageByUsedCar(usedCarId));
     }
 }
