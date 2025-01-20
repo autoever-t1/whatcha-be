@@ -6,6 +6,7 @@ import com.example.whatcha.domain.user.dto.response.CheckResDto;
 import com.example.whatcha.domain.user.dto.response.TokenInfo;
 import com.example.whatcha.domain.user.dto.response.UserInfoResDto;
 import com.example.whatcha.domain.user.service.EmailService;
+import com.example.whatcha.domain.user.service.UserRedisService;
 import com.example.whatcha.domain.user.service.UserService;
 import com.example.whatcha.global.jwt.constant.JwtHeaderUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ import javax.validation.Valid;
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
+    private final UserRedisService userRedisService;
 
     @Value("${jwt.cookieName}")
     private String COOKIE_NAME;
@@ -100,21 +102,12 @@ public class UserController {
      */
     @Operation(summary = "토큰 재발급", description = "JWT 토큰을 재발급합니다.")
     @PostMapping("/reissue-token")
-    public ResponseEntity<Void> reissueToken(@RequestHeader("Authorization") String accessToken,
-                                             @CookieValue(name = "refreshToken") String refreshToken) {
-        TokenInfo newTokenInfo = userService.reissueToken(JwtHeaderUtil.extractToken(accessToken), refreshToken);
+    public ResponseEntity<Void> reissueToken(@RequestHeader("Authorization") String accessToken) {
+
+        TokenInfo newTokenInfo = userRedisService.reissueToken(JwtHeaderUtil.extractToken(accessToken));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, JwtHeaderUtil.GRANT_TYPE.getValue() + " " + newTokenInfo.getAccessToken());
-
-        ResponseCookie newRefreshTokenCookie = ResponseCookie.from(COOKIE_NAME, newTokenInfo.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(REFRESH_TOKEN_EXPIRED_IN / 1000)
-                .sameSite("Lax")
-                .build();
-        headers.add(HttpHeaders.SET_COOKIE, newRefreshTokenCookie.toString());
 
         return ResponseEntity.ok().headers(headers).build();
     }

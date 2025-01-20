@@ -22,5 +22,4 @@ public interface UserService {
 
     UserInfoResDto findUser(); //정보 조회
 
-    TokenInfo reissueToken(String accessToken, String refreshToken); //토큰 재발급
 }
