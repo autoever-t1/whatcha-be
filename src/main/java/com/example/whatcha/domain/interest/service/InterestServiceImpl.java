@@ -16,11 +16,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +125,6 @@ public class InterestServiceImpl implements InterestService {
 
         // 빈 리스트 생성
         List<UsedCar> recommendCars = new ArrayList<>();
-        System.out.println(1);
         // 중고차 추천 데이터 조회
         if (user.getPreferenceModel1() != null || user.getPreferenceModel2() != null || user.getPreferenceModel3() != null) {
             recommendCars = usedCarRepository.findRecommendedCars(
@@ -134,7 +135,6 @@ public class InterestServiceImpl implements InterestService {
                     user.getPreferenceModel3(),
                     pageable);
         }
-        System.out.println(2);
         if (recommendCars.size() < limit) {
             int remaining = limit - recommendCars.size();
             List<Long> excludeIds = recommendCars.stream()
@@ -147,7 +147,6 @@ public class InterestServiceImpl implements InterestService {
 
             recommendCars.addAll(additionalCars);
         }
-        System.out.println(3);
         return recommendCars.stream()
                 .map(item -> CarPreviewResponseDto.builder()
                         .usedCarId(item.getUsedCarId())
@@ -194,5 +193,11 @@ public class InterestServiceImpl implements InterestService {
                 .vhclRegNo(usedCar.getVhclRegNo())
                 .price(usedCar.getPrice())
                 .build()).toList();
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul") // 매일 자정 실행
+    public void deleteExpiredAlerts() {
+        userCarAlertRepository.deleteExpiredAlerts(LocalDate.now());
     }
 }

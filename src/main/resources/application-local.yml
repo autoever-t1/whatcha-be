@@ -93,7 +93,7 @@ build:
 
 jwt:
   refresh-expired-in: '1296000000'  # Refresh Token 만료 시간 (15일)
-  access-expired-in: '3600000'      # Access Token 만료 시간 (1시간)
+  access-expired-in: '18000000'      # Access Token 만료 시간 (5시간)
   cookieName: refreshToken
   secret: ${secret-jwt.secret}
 

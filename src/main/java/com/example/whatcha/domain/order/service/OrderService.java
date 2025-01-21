@@ -1,8 +1,9 @@
 package com.example.whatcha.domain.order.service;
 
-import com.example.whatcha.domain.order.dto.response.DepositResDto;
-import com.example.whatcha.domain.order.dto.response.OrderProcessResDto;
-import com.example.whatcha.domain.order.dto.response.OrderResDto;
+import com.example.whatcha.domain.order.dto.request.PathInfoReqDto;
+import com.example.whatcha.domain.order.dto.response.*;
+
+import java.util.List;
 
 public interface OrderService {
 
@@ -25,4 +26,14 @@ public interface OrderService {
     void deliveryService(Long orderId);
 
     //배송완료
+    void deliveryCompleted(Long orderId);
+
+    //주문 목록 조회하기
+    List<OrderListResDto> getgetAllOrders(String email);
+
+    //주문서 보기
+    OrderSheetResDto getOrderSheet(Long orderId);
+
+    //order naver지도 api사용
+    PathInfoResDto getPathInfo(PathInfoReqDto request) throws Exception;
 }
