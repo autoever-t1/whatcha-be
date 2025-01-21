@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -29,5 +26,13 @@ public class DashBoard {
 
     private Long carStock;
 
+    @Column(unique = true)  // unique 제약조건 추가
     private LocalDate date;
+
+    public void updateCounts(Long userCount, Long orderCount, Long totalSales, Long carStock) {
+        this.userCount = userCount;
+        this.orderCount = orderCount;
+        this.totalSales = totalSales;
+        this.carStock = carStock;
+    }
 }

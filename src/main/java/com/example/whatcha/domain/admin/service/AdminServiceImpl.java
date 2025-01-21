@@ -377,7 +377,9 @@ public class AdminServiceImpl implements AdminService {
         boolean isWithinBudget = productPrice >= user.getBudgetMin() && productPrice <= user.getBudgetMax();
 
         // 선호 모델 확인
-        boolean isPreferredModel = KEYWORDS.stream().anyMatch(productName::contains);
+        boolean isPreferredModel = (user.getPreferenceModel1() != null && productName.contains(user.getPreferenceModel1())) ||
+                (user.getPreferenceModel2() != null && productName.contains(user.getPreferenceModel2())) ||
+                (user.getPreferenceModel3() != null && productName.contains(user.getPreferenceModel3()));
 
         // 알림 신청 모델 확인
         List<UserCarAlert> userCarAlerts = userCarAlertRepository.findAllByUserId(user.getUserId());
@@ -449,32 +451,38 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Transactional
     public void dashBoardRatio() {
+        LocalDate date = LocalDate.now();
+
+        // 오늘 날짜의 대시보드가 이미 존재하는지 확인
+        Optional<DashBoard> existingDashBoard = dashBoardRepository.findByDate(date);
+
         //유저수
         Long userCount = userRepository.count();
-
         //판매차량
         Long orderCount = orderRepository.count();
-
         //총 판매량
         Long totalSales = orderRepository.getTotalSales();
-
         Long wholeCarCont = usedCarRepository.count();
-
         //차량 재고
         Long carStock = wholeCarCont - orderCount;
 
-        LocalDate date = LocalDate.now();
-
-        DashBoard dashBoard = DashBoard.builder()
-                .userCount(userCount)
-                .orderCount(orderCount)
-                .totalSales(totalSales)
-                .carStock(carStock)
-                .date(date)
-                .build();
-
-        dashBoardRepository.save(dashBoard);
+        if (existingDashBoard.isPresent()) {
+            // 이미 존재하면 업데이트
+            DashBoard dashboard = existingDashBoard.get();
+            dashboard.updateCounts(userCount, orderCount, totalSales, carStock);
+        } else {
+            // 새로 생성
+            DashBoard dashBoard = DashBoard.builder()
+                    .userCount(userCount)
+                    .orderCount(orderCount)
+                    .totalSales(totalSales)
+                    .carStock(carStock)
+                    .date(date)
+                    .build();
+            dashBoardRepository.save(dashBoard);
+        }
     }
 
     @Override
