@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
+    private final AdminService adminService;
+
     @Async
     public void delayedPushAlarm(RegisterCarReqDto registerCarReqDto) {
         try {
@@ -499,12 +501,16 @@ public class AdminServiceImpl implements AdminService {
         DashBoard yesterdayData = dashBoardRepository.findByDate(yesterday)
                 .orElseThrow(() -> new IllegalArgumentException("Dashboard data not found for yesterday: " + yesterday));
 
+        DashBoardResDto dashBoardResDto = getDashBoard();
+
+
+
         DashBoardRatioResDto todayDto = DashBoardRatioResDto.builder()
-                .date(todayData.getDate())
-                .userCount(todayData.getUserCount())
-                .orderCount(todayData.getOrderCount())
-                .totalSales(todayData.getTotalSales())
-                .carStock(todayData.getCarStock())
+                .date(LocalDate.now())
+                .userCount(dashBoardResDto.getUserCount())
+                .orderCount(dashBoardResDto.getOrderCount())
+                .totalSales(dashBoardResDto.getTotalSales())
+                .carStock(dashBoardResDto.getCarStock())
                 .build();
 
         DashBoardRatioResDto yesterdayDto = DashBoardRatioResDto.builder()
