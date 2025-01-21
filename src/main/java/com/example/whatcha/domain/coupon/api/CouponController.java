@@ -49,4 +49,22 @@ public class CouponController {
         return ResponseEntity.ok(response);
     }
 
+    // 룰렛 참여한 적 있는지 확인하는 API
+    @GetMapping("/roulette")
+    public ResponseEntity<Boolean> hasParticipatedInRoulette() {
+        boolean exists = couponService.hasParticipatedInRoulette();
+        if(exists) exists = false;
+        else exists = true;
+        return ResponseEntity.ok().body(exists);
+    }
+
+    // 신규 가입 쿠폰 받은 적 있는지 확인하는 API
+    @GetMapping("/new-user")
+    public ResponseEntity<Boolean> hasReceivedNewUserCoupon() {
+        boolean exists = couponService.hasReceivedNewUserCoupon();
+        if(exists) {
+            exists = false;
+        } else exists = true;
+        return ResponseEntity.ok().body(exists);
+    }
 }
