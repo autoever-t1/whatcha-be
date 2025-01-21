@@ -57,6 +57,9 @@ public class UserServiceImpl implements UserService {
 
         logoutAccessTokenRepository.deleteById(loginReqDto.getEmail());
 
+        // appToken 갱신
+        user.updateAppToken(loginReqDto);
+
         // Refresh Token을 Redis에 저장
         userRedisService.addRefreshToken(user.getEmail(), tokenInfo.getRefreshToken());
 
