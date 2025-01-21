@@ -3,6 +3,7 @@ package com.example.whatcha.domain.user.domain;
 import com.example.whatcha.domain.user.constant.UserType;
 import com.example.whatcha.domain.user.dto.request.BudgetReqDto;
 import com.example.whatcha.domain.user.dto.request.ConsentReqDto;
+import com.example.whatcha.domain.user.dto.request.LoginReqDto;
 import com.example.whatcha.domain.user.dto.request.PreferenceModelReqDto;
 import com.example.whatcha.global.entity.BaseEntity;
 import lombok.AccessLevel;
@@ -90,6 +91,10 @@ public class User extends BaseEntity {
         this.longitude = longitude;
         this.appToken = appToken;
         this.gender = gender;
+    }
+
+    public void updateAppToken(LoginReqDto loginReqDto) {
+        this.appToken = loginReqDto.getAppToken();
     }
 
     public void updateBudget(BudgetReqDto budgetReqDto) {
