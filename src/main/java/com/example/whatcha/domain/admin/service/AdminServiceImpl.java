@@ -36,6 +36,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -450,7 +451,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+//    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @PostConstruct
     @Transactional
     public void dashBoardRatio() {
         LocalDate date = LocalDate.now();
