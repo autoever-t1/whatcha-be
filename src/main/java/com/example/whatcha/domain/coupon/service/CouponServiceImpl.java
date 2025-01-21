@@ -11,23 +11,17 @@ import com.example.whatcha.domain.coupon.exception.UserCouponsNotFoundException;
 import com.example.whatcha.domain.user.dao.UserRepository;
 import com.example.whatcha.domain.user.domain.User;
 import com.example.whatcha.domain.user.exception.UserNotFoundException;
-import com.nimbusds.oauth2.sdk.ErrorResponse;
+import com.example.whatcha.global.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.sound.midi.Soundbank;
-import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static org.hibernate.engine.transaction.internal.jta.JtaStatusHelper.isActive;
+import static com.example.whatcha.domain.user.constant.UserExceptionMessage.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -36,6 +30,13 @@ public class CouponServiceImpl implements CouponService {
     private final CouponRepository couponRepository;
     private final UserCouponsRepository userCouponsRepository;
     private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
+
+    private User getLoginUser() {
+        String loginUserEmail = securityUtils.getLoginUserEmail();
+        return userRepository.findByEmail(loginUserEmail)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND.getMessage()));
+    }
 
     @Override
     public CouponResDto addCoupon(String couponCode, String email) {
@@ -106,6 +107,17 @@ public class CouponServiceImpl implements CouponService {
         });
     }
 
+    // 룰렛 참여한 적 있는지 확인하는 API
+    public Boolean hasParticipatedInRoulette() {
+        User user = getLoginUser();
+        boolean exists = userCouponsRepository.existsByUserAndCouponCouponCodeContainingAndIsActiveTrue(user, "RANDOM");
+        return exists;
+    }
 
-
+    // 신규 가입 쿠폰 받은 적 있는지 확인하는 API
+    public Boolean hasReceivedNewUserCoupon() {
+        User user = getLoginUser();
+        boolean exists = userCouponsRepository.existsByUserAndCouponCouponCodeContainingAndIsActiveTrue(user, "WelcomeWhatcha");
+        return exists;
+    }
 }
