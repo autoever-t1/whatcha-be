@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
-    private final AdminService adminService;
-
     @Async
     public void delayedPushAlarm(RegisterCarReqDto registerCarReqDto) {
         try {
@@ -519,7 +517,7 @@ public class AdminServiceImpl implements AdminService {
                 .userCount(userCount)
                 .orderCount(orderCount)
                 .totalSales(totalSales)
-                .carStock(wholeCarCont)
+                .carStock(carStock)
                 .build();
 
         DashBoardRatioResDto yesterdayDto = DashBoardRatioResDto.builder()
