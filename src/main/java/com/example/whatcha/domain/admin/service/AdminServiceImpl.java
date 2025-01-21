@@ -501,16 +501,25 @@ public class AdminServiceImpl implements AdminService {
         DashBoard yesterdayData = dashBoardRepository.findByDate(yesterday)
                 .orElseThrow(() -> new IllegalArgumentException("Dashboard data not found for yesterday: " + yesterday));
 
-        DashBoardResDto dashBoardResDto = getDashBoard();
+        Long userCount = userRepository.count();
 
+        //판매차량
+        Long orderCount = orderRepository.count();
 
+        //총 판매량
+        Long totalSales = orderRepository.getTotalSales();
+
+        Long wholeCarCont = usedCarRepository.count();
+
+        //차량 재고
+        Long carStock = wholeCarCont - orderCount;
 
         DashBoardRatioResDto todayDto = DashBoardRatioResDto.builder()
                 .date(LocalDate.now())
-                .userCount(dashBoardResDto.getUserCount())
-                .orderCount(dashBoardResDto.getOrderCount())
-                .totalSales(dashBoardResDto.getTotalSales())
-                .carStock(dashBoardResDto.getCarStock())
+                .userCount(userCount)
+                .orderCount(orderCount)
+                .totalSales(totalSales)
+                .carStock(wholeCarCont)
                 .build();
 
         DashBoardRatioResDto yesterdayDto = DashBoardRatioResDto.builder()
